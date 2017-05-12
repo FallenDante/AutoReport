@@ -1,9 +1,11 @@
 package com.dante.modules.account.entity;
 
+import com.dante.common.persistence.BaseEntity;
+
 /**
  * Created by dante on 2017/4/26.
  */
-public class Role {
+public class Role extends BaseEntity {
     private int id;
     private String name;
 

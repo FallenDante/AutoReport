@@ -88,7 +88,7 @@
     <!-- 配置mybatis的sqlSessionFactory -->
     <bean id="sqlSessionFactory"
           class="org.mybatis.spring.SqlSessionFactoryBean">
-        <property name="dataSource"  ref="dataSource"/>
+        <property name="dataSource" ref="dataSource"/>
         <!--定义别名包-->
         <property name="typeAliasesPackage" value="com.dante"></property>
         <!--扫描别名包继承的父类-->
@@ -100,8 +100,8 @@
     </bean>
     <!-- DAO接口所在包名，Spring会自动查找其下的类 -->
     <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
-        <property name="basePackage" value="modules"/>
+        <property name="basePackage" value="com.dante"/>
         <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory"/>
-        <property name="annotationClass" value="common.persistence.annotation.MyBatisDao"/>
+        <property name="annotationClass" value="com.dante.common.persistence.annotation.MyBatisDao"/>
     </bean>
 </beans>

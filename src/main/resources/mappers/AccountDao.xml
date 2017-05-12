@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dante.modules.account.dao.AccountDao">
+    <resultMap type="Account" id="AccountResult">
+        <id property="id" column="ACCOUNT_ID"/>
+        <result property="name" column="ACCOUNT_NAME"/>
+        <result property="pwd" column="ACCOUNT_PWD"/>
+        <collection property="roleList" ofType="Role" resultMap="RoleResult" columnPrefix="rol_"></collection>
+        <collection property="permissionList" ofType="Permission" resultMap="PermissionResult"
+                    columnPrefix="per_"></collection>
+    </resultMap>
+
+    <resultMap id="RoleResult" type="Role">
+        <id property="id" column="ROLE_ID"></id>
+        <result property="name" column="ROLE_NAME"></result>
+    </resultMap>
+
+    <resultMap id="PermissionResult" type="Permission">
+        <id property="id" column="PERMISSION_ID"></id>
+        <result property="name" column="PERMISSION_NAME"></result>
+    </resultMap>
+
+    <!--<select id="queryToLogin" parameterType="String" resultType="User">-->
+    <!--select u.userid, u.name,u.pwd from dante_user u where name = #{userName};-->
+    <!--</select>-->
+    <select id="queryToLogin" parameterType="String" resultMap="AccountResult">
+        SELECT
+        a.ACCOUNT_ID,
+        a.ACCOUNT_NAME,
+        a.ACCOUNT_PWD,
+        r.ROLE_ID as rol_role_id,
+        r.ROLE_NAME as rol_role_name,
+        p.PERMISSION_ID as per_permission_id,
+        p.PERMISSSION_NAME as per_permission_name
+        FROM
+        account a
+        LEFT OUTER JOIN account_role ar ON a.ACCOUNT_ID = ar.ACCOUNT_ID
+        LEFT OUTER JOIN role r ON ar.ROLE_ID = r.ROLE_ID
+        LEFT OUTER JOIN role_permission rp on rp.ROLE_ID = r.ROLE_ID
+        LEFT OUTER JOIN permission p on rp.PERMISSION_ID = p.PERMISSION_ID
+        where a.ACCOUNT_NAME=#{name}
+    </select>
+
+    <!--<select id="queryRole" resultType="Role">-->
+        <!--SELECT * from  role where ROLE_ID = #{id}-->
+    <!--</select>-->
+
+</mapper>

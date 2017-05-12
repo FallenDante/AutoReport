@@ -1,11 +1,13 @@
 package com.dante.modules.account.entity;
 
+import com.dante.common.persistence.BaseEntity;
+
 import java.util.List;
 
 /**
  * Created by dante on 2017/4/12.
  */
-public class User {
+public class User  extends BaseEntity {
     private int id;
     private String name;
     private String pwd;
