@@ -1,18 +1,33 @@
 package com.dante.modules.account.entity;
 
 import com.dante.common.persistence.BaseEntity;
+import com.dante.modules.system.entity.Menu;
 
 import java.util.List;
+import java.util.TreeSet;
 
 /**
  * Created by dante on 2017/4/27.
  */
-public class Account extends BaseEntity {
+public class Account extends BaseEntity<Account> {
     private int id;
     private String name;
     private String pwd;
     private List<Role> roleList;
     private List<Permission> permissionList;
+    private TreeSet<Menu> menus;
+
+    public TreeSet<Menu> getMenus() {
+        return menus;
+    }
+
+    public void setMenus(TreeSet<Menu> menus) {
+        this.menus = menus;
+    }
+
+
+
+
 
     public List<Role> getRoleList() {
         return roleList;

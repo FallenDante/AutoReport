@@ -1,0 +1,621 @@
+<title>响巢看看数据系统</title>
+
+<link rel="stylesheet" href="{{ STATIC_URL }}assets/css/jquery-ui.min.css"/>
+<link rel="stylesheet" href="{{ STATIC_URL }}assets/css/datepicker.css"/>
+<link rel="stylesheet" href="{{ STATIC_URL }}assets/css/ui.jqgrid.css"/>
+
+<!-- ajax layout which only needs content area -->
+<div class="page-header">
+
+</div><!-- /.page-header -->
+
+<div class="row">
+    <div class="col-xs-12">
+
+        <table id="grid-table"></table>
+
+        <div id="grid-pager"></div>
+
+        <script type="text/javascript">
+            var $path_base = "../..";//in Ace demo this will be used for editurl parameter
+        </script>
+
+        <!-- PAGE CONTENT ENDS -->
+    </div>
+    <!-- /.col -->
+</div><!-- /.row -->
+
+<!-- page specific plugin scripts -->
+<script type="text/javascript">
+    var scripts = [null, "{{STATIC_URL}}assets/js/date-time/bootstrap-datepicker.min.js", "{{STATIC_URL}}assets/js/jqGrid/jquery.jqGrid.min.js", "{{STATIC_URL}}assets/js/jqGrid/i18n/grid.locale-en.js", null]
+    ace.load_ajax_scripts(scripts, function () {
+        //inline scripts related to this page
+
+
+        var subgrid_data =
+                [
+                    {id: "1", name: "sub grid item 1", qty: 11},
+                    {id: "2", name: "sub grid item 2", qty: 3},
+                    {id: "3", name: "sub grid item 3", qty: 12},
+                    {id: "4", name: "sub grid item 4", qty: 5},
+                    {id: "5", name: "sub grid item 5", qty: 2},
+                    {id: "6", name: "sub grid item 6", qty: 9},
+                    {id: "7", name: "sub grid item 7", qty: 3},
+                    {id: "8", name: "sub grid item 8", qty: 8}
+                ];
+
+        jQuery(function ($) {
+            var grid_selector = "#grid-table";
+            var pager_selector = "#grid-pager";
+
+            //resize to fit page size
+            $(window).on('resize.jqGrid', function () {
+                $(grid_selector).jqGrid('setGridWidth', $(".page-content").width());
+            })
+            //resize on sidebar collapse/expand
+            var parent_column = $(grid_selector).closest('[class*="col-"]');
+            $(document).on('settings.ace.jqGrid', function (ev, event_name, collapsed) {
+                if (event_name === 'sidebar_collapsed' || event_name === 'main_container_fixed') {
+                    //setTimeout is for webkit only to give time for DOM changes and then redraw!!!
+                    setTimeout(function () {
+                        $(grid_selector).jqGrid('setGridWidth', parent_column.width());
+                    }, 0);
+                }
+            })
+
+
+            jQuery(grid_selector).jqGrid({
+                //direction: "rtl",
+
+                //subgrid options
+                subGrid: true,
+                subGridOptions: {
+                    plusicon: "ace-icon fa fa-plus center bigger-110 blue",
+                    minusicon: "ace-icon fa fa-minus center bigger-110 blue",
+                    openicon: "ace-icon fa fa-chevron-right center orange"
+                },
+                //for this example we are using local data
+                subGridRowExpanded: function (subgridDivId, rowId) {
+                    var subgridTableId = subgridDivId + "_t";
+                    $("#" + subgridDivId).html("<table id='" + subgridTableId + "'></table>");
+                    $("#" + subgridTableId).jqGrid({
+                        datatype: 'local',
+                        data: subgrid_data,
+                        colNames: ['No', 'Item Name', 'Qty'],
+                        colModel: [
+                            {name: 'id', width: 50},
+                            {name: 'name', width: 150},
+                            {name: 'qty', width: 50}
+                        ]
+                    });
+                },
+
+
+                //替换的数据-----------------------------
+                url: "partner/partner_loaddata/",
+                datatype: "json",
+                //-----------------------------------
+                colNames: [' ', '渠道ID', '渠道所属公司', '关系', '渠道负责人', '结算URL', '渠道类型', '渠道名称', '结算方式', '合同编号', '合作开始日期', '合作结束日期', '备注', '记录ID'],
+                colModel: [
+                    {
+                        name: 'myac', index: '', width: 80, fixed: true, sortable: false, resize: false,
+                        formatter: 'actions',
+                        formatoptions: {
+                            keys: true,
+                            delbutton: true,//disable delete button
+                            delOptions: {
+                                recreateForm: true, beforeShowForm: beforeDeleteCallback,
+                                //删除成功成功------这些参数要抽象---------TODO
+                                url: "partner/partner_delete/",
+                                mtype: 'POST',
+                                afterSubmit: function () {
+                                    alert("记录删除成功！");
+                                    $(this).jqGrid("setGridParam", {datatype: 'json'});
+                                    return [true];
+                                },
+                                onclickSubmit: function (options, delId) {
+                                    // get the vale from 'id' (label: 'userID') column
+                                    // and extend the postdata with name property
+                                    return {
+                                        Fid: $(this).jqGrid('getCell', delId, 'Fid')
+                                    };
+                                },
+                            },
+                            editformbutton: true,
+                            editOptions: {closeAfterEdit: true},
+                        }
+                    },
+
+                    {
+                        name: "url_id",
+                        index: "url_id",
+                        width: 60,
+                        sorttype: "int",
+                        editable: true,
+                        searchoptions: {sopt: ['eq']},
+                        align: "center"
+                    },
+                    //{name:'partner_channelCompany',index:'partner_channelCompany', width:90,editable: true,editoptions:{size:"30",maxlength:"200"},  stype: 'select', searchoptions:{ sopt:['eq'], value: getSelectValues("partner_channelCompany") }, align:"center"},
+                    {
+                        name: 'partner_channelCompany',
+                        index: 'partner_channelCompany',
+                        width: 90,
+                        editable: true,
+                        editoptions: {size: "30", maxlength: "200"},
+                        stype: 'select',
+                        searchoptions: {sopt: ['eq'], dataUrl: 'partner/query_partner_company/'},
+                        align: "center"
+                    },
+                    {
+                        name: 'flag',
+                        index: 'flag',
+                        width: 30,
+                        editable: true,
+                        edittype: 'select',
+                        editoptions: {value: {'1': '启用', '0': '禁用'}},
+                        formatter: partnerRelationFormatter,
+                        unformat: partnerRelationUnformatter,
+                        align: "center"
+                    },
+                    {
+                        name: 'partner_channelContacter',
+                        index: 'partner_channelContacter',
+                        width: 60,
+                        editable: true,
+                        editoptions: {size: "20", maxlength: "200"},
+                        stype: 'select',
+                        searchoptions: {sopt: ['eq'], dataUrl: 'partner/query_partner_channelContacter/'},
+                        align: "center"
+                    },
+                    {
+                        name: 'out_ref_pattern',
+                        index: 'out_ref_pattern',
+                        width: 120,
+                        editable: true,
+                        editoptions: {size: "50", maxlength: "200"},
+                        align: "center"
+                    },
+                    {
+                        name: 'partner_name',
+                        index: 'partner_name',
+                        width: 120,
+                        editable: true,
+                        editoptions: {size: "30", maxlength: "150"},
+                        align: "center"
+                    },
+                    {
+                        name: 'pertner_data',
+                        index: 'pertner_data',
+                        width: 120,
+                        editable: true,
+                        edittype: "textarea",
+                        editoptions: {rows: "2", cols: "10"},
+                        align: "center"
+                    },
+                    {
+                        name: 'id_or_url',
+                        index: 'id_or_url',
+                        width: 50,
+                        editable: true,
+                        edittype: 'select',
+                        editoptions: {value: {'i': 'id', 'u': 'url', 'iu': 'id+url'}},
+                        formatter: paymentFormatter,
+                        unformat: paymentUnformatter,
+                        align: "center"
+                    },
+                    {
+                        name: 'contractNo',
+                        index: 'contractNo',
+                        width: 100,
+                        editable: true,
+                        editoptions: {size: "20", maxlength: "50"},
+                        align: "center"
+                    },
+                    {
+                        name: 'start_date',
+                        index: 'start_date',
+                        width: 90,
+                        editable: true,
+                        sorttype: "date",
+                        unformat: pickDate,
+                        align: "center"
+                    },
+                    {
+                        name: 'end_date',
+                        index: 'end_date',
+                        width: 90,
+                        editable: true,
+                        sorttype: "date",
+                        unformat: pickDate,
+                        align: "center"
+                    },
+                    {
+                        name: 'remarks',
+                        index: 'remarks',
+                        width: 120,
+                        editable: true,
+                        edittype: "textarea",
+                        editoptions: {rows: "2", cols: "10"},
+                        align: "center",
+                        sortable: false,
+                        search: false
+                    },
+                    {name: 'Fid', index: 'Fid', hidden: true, editable: true, editrules: {edithidden: false}},
+                ],
+
+                viewrecords: true,
+                rowNum: 30,
+                rowList: [30, 50, 100],
+                jsonReader: {
+                    repeatitems: false,
+                    root: "grid_data",             // 数据行（默认为：rows）
+                    page: "current_page",           // 当前页
+                    total: "total_page",    // 总页数
+                    records: "records",  // 总记录数
+                },
+                pager: pager_selector,
+                height: "500",
+                altRows: true,
+                //toppager: true,
+                //records: 19,
+
+                multiselect: true,
+                //multikey: "ctrlKey",
+                multiboxonly: true,
+
+                loadComplete: function (data) {
+                    var table = this;
+
+                    setTimeout(function () {
+                        styleCheckbox(table);
+
+                        updateActionIcons(table);
+                        updatePagerIcons(table);
+                        enableTooltips(table);
+                    }, 0);
+                },
+
+                editurl: "partner/partner_edit/",//update 请求地址
+                caption: "合作渠道信息管理",//待修改
+
+            });
+            $(window).triggerHandler('resize.jqGrid');//trigger window resize to make the grid get the correct size
+
+
+            //enable search/filter toolbar
+            jQuery(grid_selector).jqGrid('filterToolbar', {defaultSearch: true, stringResult: true})
+            jQuery(grid_selector).filterToolbar({});
+
+
+            //switch element when editing inline
+            function aceSwitch(cellvalue, options, cell) {
+                setTimeout(function () {
+                    $(cell).find('input[type=checkbox]')
+                            .addClass('ace ace-switch ace-switch-5')
+                            .after('<span class="lbl"></span>');
+                }, 0);
+            }
+
+            //enable datepicker
+            function pickDate(cellvalue, options, cell) {
+                setTimeout(function () {
+                    $(cell).find('input[type=text]')
+                            .datepicker({format: 'yyyy-mm-dd', autoclose: true});
+                }, 0);
+            }
+
+
+            jQuery(grid_selector).jqGrid('inlineNav', grid_selector, {edit: false, add: false, del: false});
+
+            //navButtons
+            jQuery(grid_selector).jqGrid('navGrid', pager_selector,
+                    { 	//navbar options
+                        edit: true,
+                        editicon: 'ace-icon fa fa-pencil blue',
+                        add: true,
+                        addicon: 'ace-icon fa fa-plus-circle purple',
+                        del: true,
+                        delicon: 'ace-icon fa fa-trash-o red',
+                        search: true,
+                        searchicon: 'ace-icon fa fa-search orange',
+                        refresh: true,
+                        refreshicon: 'ace-icon fa fa-refresh green',
+                        view: true,
+                        viewicon: 'ace-icon fa fa-search-plus grey',
+                    },
+                    {
+                        //edit record form--------edit settings
+                        url: "partner/partner_edit/",
+                        mtype: 'POST',  //post对django需要CSRF token,待定
+                        recreateForm: true,
+                        beforeShowForm: function (e) {
+                            var form = $(e[0]);
+                            form.closest('.ui-jqdialog').find('.ui-jqdialog-titlebar').wrapInner('<div class="widget-header" />')
+                            style_edit_form(form);
+                        },
+                        onInitializeForm: function (item) {
+                            jQuery("#start_date", item).datepicker(
+                                    {
+                                        format: 'yyyy-mm-dd',
+                                        autoclose: true,
+                                    }
+                            );
+                            jQuery("#end_date", item).datepicker(
+                                    {
+                                        format: 'yyyy-mm-dd',
+                                        autoclose: true,
+                                    }
+                            );
+
+                        },
+                        //修改成功
+                        afterSubmit: function () {
+                            alert("记录修改成功！");
+                            $(this).jqGrid("setGridParam", {datatype: 'json'});
+                            return [true];
+                        },
+                        closeAfterEdit: true,
+                        reloadAfterSubmit: false,
+                        //editData: { url_id: "test" } # jqgrid 自动填充数据
+                    },
+                    {
+                        //new record form-----------add setttings
+                        //width: 700,
+                        url: "partner/partner_insert/",
+                        mtype: 'POST',
+                        closeAfterAdd: true,
+                        recreateForm: true,
+                        viewPagerButtons: false,
+                        //修改成功
+                        afterSubmit: function () {
+                            alert("记录添加成功！");
+                            $(this).jqGrid("setGridParam", {datatype: 'json'});
+                            return [true];
+                        },
+                        onInitializeForm: function (item) {
+                            jQuery("#start_date", item).datepicker(
+                                    {
+                                        format: 'yyyy-mm-dd',
+                                        autoclose: true,
+                                    }
+                            );
+                            jQuery("#end_date", item).datepicker(
+                                    {
+                                        format: 'yyyy-mm-dd',
+                                        autoclose: true,
+                                    }
+                            );
+
+                        },
+                        beforeShowForm: function (e) {
+                            var form = $(e[0]);
+                            form.closest('.ui-jqdialog').find('.ui-jqdialog-titlebar')
+                                    .wrapInner('<div class="widget-header" />')
+                            style_edit_form(form);
+                        }
+
+                    },
+                    {
+                        //delete record form-------------delete settings
+                        url: "partner/partner_delete/",
+                        mtype: 'POST',
+                        recreateForm: true,
+                        beforeShowForm: function (e) {
+                            var form = $(e[0]);
+                            if (form.data('styled')) return false;
+
+                            form.closest('.ui-jqdialog').find('.ui-jqdialog-titlebar').wrapInner('<div class="widget-header" />')
+                            style_delete_form(form);
+
+                            form.data('styled', true);
+                        },
+
+                        //删除成功成功
+                        afterSubmit: function () {
+                            alert("记录删除成功！");
+                            $(this).jqGrid("setGridParam", {datatype: 'json'});
+                            return [true];
+                        },
+                        onclickSubmit: function (options, delId) {
+                            // get the vale from 'id' (label: 'userID') column
+                            // and extend the postdata with name property
+                            return {
+                                Fid: $(this).jqGrid('getCell', delId, 'Fid')
+                            };
+                        },
+                    },
+                    {
+                        //search form
+                        recreateForm: true,
+                        afterShowSearch: function (e) {
+                            var form = $(e[0]);
+                            form.closest('.ui-jqdialog').find('.ui-jqdialog-title').wrap('<div class="widget-header" />')
+                            style_search_form(form);
+                        },
+                        afterRedraw: function () {
+                            style_search_filters($(this));
+                        }
+                        ,
+                        multipleSearch: true,
+                        /**
+                         multipleGroup:true,
+                         showQuery: true
+                         */
+                    },
+                    {
+                        //view record form
+                        recreateForm: true,
+                        beforeShowForm: function (e) {
+                            var form = $(e[0]);
+                            form.closest('.ui-jqdialog').find('.ui-jqdialog-title').wrap('<div class="widget-header" />')
+                        }
+                    }
+            );
+
+
+            function style_edit_form(form) {
+                //enable datepicker on "sdate" field and switches for "stock" field
+                form.find('input[name=sdate]').datepicker({format: 'yyyy-mm-dd', autoclose: true})
+                        .end().find('input[name=stock]')
+                        .addClass('ace ace-switch ace-switch-5').after('<span class="lbl"></span>');
+                //don't wrap inside a label element, the checkbox value won't be submitted (POST'ed)
+                //.addClass('ace ace-switch ace-switch-5').wrap('<label class="inline" />').after('<span class="lbl"></span>');
+
+                //update buttons classes
+                var buttons = form.next().find('.EditButton .fm-button');
+                buttons.addClass('btn btn-sm').find('[class*="-icon"]').hide();//ui-icon, s-icon
+                buttons.eq(0).addClass('btn-primary').prepend('<i class="ace-icon fa fa-check"></i>');
+                buttons.eq(1).prepend('<i class="ace-icon fa fa-times"></i>')
+
+                buttons = form.next().find('.navButton a');
+                buttons.find('.ui-icon').hide();
+                buttons.eq(0).append('<i class="ace-icon fa fa-chevron-left"></i>');
+                buttons.eq(1).append('<i class="ace-icon fa fa-chevron-right"></i>');
+            }
+
+            function style_delete_form(form) {
+                var buttons = form.next().find('.EditButton .fm-button');
+                buttons.addClass('btn btn-sm btn-white btn-round').find('[class*="-icon"]').hide();//ui-icon, s-icon
+                buttons.eq(0).addClass('btn-danger').prepend('<i class="ace-icon fa fa-trash-o"></i>');
+                buttons.eq(1).addClass('btn-default').prepend('<i class="ace-icon fa fa-times"></i>')
+            }
+
+            function style_search_filters(form) {
+                form.find('.delete-rule').val('X');
+                form.find('.add-rule').addClass('btn btn-xs btn-primary');
+                form.find('.add-group').addClass('btn btn-xs btn-success');
+                form.find('.delete-group').addClass('btn btn-xs btn-danger');
+            }
+
+            function style_search_form(form) {
+                var dialog = form.closest('.ui-jqdialog');
+                var buttons = dialog.find('.EditTable')
+                buttons.find('.EditButton a[id*="_reset"]').addClass('btn btn-sm btn-info').find('.ui-icon').attr('class', 'ace-icon fa fa-retweet');
+                buttons.find('.EditButton a[id*="_query"]').addClass('btn btn-sm btn-inverse').find('.ui-icon').attr('class', 'ace-icon fa fa-comment-o');
+                buttons.find('.EditButton a[id*="_search"]').addClass('btn btn-sm btn-purple').find('.ui-icon').attr('class', 'ace-icon fa fa-search');
+            }
+
+            function beforeDeleteCallback(e) {
+                var form = $(e[0]);
+                if (form.data('styled')) return false;
+
+                form.closest('.ui-jqdialog').find('.ui-jqdialog-titlebar').wrapInner('<div class="widget-header" />')
+                style_delete_form(form);
+
+                form.data('styled', true);
+            }
+
+            function beforeEditCallback(e) {
+                var form = $(e[0]);
+                form.closest('.ui-jqdialog').find('.ui-jqdialog-titlebar').wrapInner('<div class="widget-header" />')
+                style_edit_form(form);
+            }
+
+
+            //it causes some flicker when reloading or navigating grid
+            //it may be possible to have some custom formatter to do this as the grid is being created to prevent this
+            //or go back to default browser checkbox styles for the grid
+            function styleCheckbox(table) {
+                /**
+                 $(table).find('input:checkbox').addClass('ace')
+                 .wrap('<label />')
+                 .after('<span class="lbl align-top" />')
+
+
+                 $('.ui-jqgrid-labels th[id*="_cb"]:first-child')
+                 .find('input.cbox[type=checkbox]').addClass('ace')
+                 .wrap('<label />').after('<span class="lbl align-top" />');
+                 */
+            }
+
+
+            //unlike navButtons icons, action icons in rows seem to be hard-coded
+            //you can change them like this in here if you want
+            function updateActionIcons(table) {
+                /**
+                 var replacement =
+                 {
+                     'ui-ace-icon fa fa-pencil' : 'ace-icon fa fa-pencil blue',
+                     'ui-ace-icon fa fa-trash-o' : 'ace-icon fa fa-trash-o red',
+                     'ui-icon-disk' : 'ace-icon fa fa-check green',
+                     'ui-icon-cancel' : 'ace-icon fa fa-times red'
+                 };
+                 $(table).find('.ui-pg-div span.ui-icon').each(function(){
+				var icon = $(this);
+				var $class = $.trim(icon.attr('class').replace('ui-icon', ''));
+				if($class in replacement) icon.attr('class', 'ui-icon '+replacement[$class]);
+			})
+                 */
+            }
+
+
+            function enableTooltips(table) {
+                $('.navtable .ui-pg-button').tooltip({container: 'body'});
+                $(table).find('.ui-pg-div').tooltip({container: 'body'});
+            }
+
+            //------------------------------------my function
+            function partnerRelationFormatter(cellvalue, options, rowObject) {
+                if (cellvalue == "1" || cellvalue == "启用") {
+                    return "启用";
+                }
+                else if (cellvalue == "0" || cellvalue == "禁用") {
+                    return "禁用";
+                }
+                //defualt:
+                return "error!";
+            }
+
+            function partnerRelationUnformatter(cellvalue, options, rowObject) {
+                if (cellvalue == "启用") {
+                    return "1";
+                }
+                else if (cellvalue == "禁用") {
+                    return "0";
+                }
+                //defualt:
+                return "error!";
+            }
+
+            function paymentFormatter(cellvalue, options, rowObject) {
+
+                if (cellvalue == "i" || cellvalue == "id") {
+                    return 'id';
+                }
+                else if (cellvalue == "u" || cellvalue == "url") {
+                    return 'url';
+                }
+                else if (cellvalue == "iu" || cellvalue == "id+url") {
+                    return 'id+url';
+                }
+                //default:
+                return "error!"
+
+            }
+
+            function paymentUnformatter(cellvalue, options, rowObject) {
+                if (cellvalue == 'id') {
+                    return 'i';
+                }
+                else if (cellvalue == 'url') {
+                    return 'u';
+                }
+                else if (cellvalue == 'id+url') {
+                    return 'iu';
+                }
+                //defualt:
+                return 'error!';
+            }
+
+
+            //---------------------------------------------------
+
+            //var selr = jQuery(grid_selector).jqGrid('getGridParam','selrow');
+
+            $(document).on('ajaxloadstart', function (e) {
+                $(grid_selector).jqGrid('GridUnload');
+                $('.ui-jqdialog').remove();
+            });
+        });
+    });
+</script>

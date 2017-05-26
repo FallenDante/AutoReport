@@ -1,0 +1,320 @@
+<link rel="stylesheet" href="{{ STATIC_URL }}assets/css/jquery-ui.min.css"/>
+<link rel="stylesheet" href="{{ STATIC_URL }}assets/css/ui.jqgrid.css"/>
+{#dialog使用样式#}
+<style>
+    label, input {
+        display: block;
+    }
+
+    input.text {
+        margin-bottom: 12px;
+        width: 95%;
+        padding: .4em;
+    }
+
+    fieldset {
+        padding: 0;
+        border: 0;
+        margin-top: 25px;
+    }
+
+
+</style>
+{#<div id="button_area" style="overflow: auto;"></div>#}
+<script>
+    // dialog使用对象以及函数-----------------------------
+    var dialog;
+    $(function () {
+        var form,
+                audio_bitrate = $("#audio_bitrate"),
+                video_bitrate = $("#video_bitrate"),
+                allFields = $([]).add(audio_bitrate).add(video_bitrate);
+
+
+        // 添加阀值
+        function addThresholds() {
+            $.ajax({
+                url: 'livemonitor/update_threshold/',
+                method: "POST",
+                data: {
+                    'audio_bitrate': jQuery("#audio_bitrate").val(), 'video_bitrate': jQuery('#video_bitrate').val(),
+                    'live_id': jQuery('#threshold_live_id').val(), 'alarmer': jQuery("#userNameArea").text()
+                },
+                success: function (data) {
+                    dialog.dialog("close");
+                    // 刷新jqgrid
+                    $('#grid-table').trigger('reloadGrid');
+                },
+                error: function () {
+                    alert("Error with AJAX callback");
+                }
+            });
+            return true
+        }
+
+
+        dialog = $("#dialog-form").dialog({
+            autoOpen: false,
+            height: 400,
+            width: 350,
+            modal: true,
+            buttons: {
+                "提交": addThresholds,
+                "取消": function () {
+                    dialog.dialog("close");
+                }
+            },
+            close: function () {
+                form[0].reset();
+                allFields.removeClass("ui-state-error");
+            }
+        });
+
+        form = dialog.find("form").on("submit", function (event) {
+            event.preventDefault();
+            addThresholds();
+        });
+
+
+    })
+    ;
+</script>
+<div id="player_area" style="overflow: auto;">
+</div>
+<div id="live_now_area"></div>
+<div id="live_history_area"></div>
+
+<div class="row">
+    <div class="col-xs-12">
+        <table id="grid-table"></table>
+        <div id="grid-pager"></div>
+        <font color="red"><strong>注：没有保存的推流数据将在7天后清除！</strong></font>
+    </div>
+</div>
+
+{#dialog窗口，弹窗使用#}
+<div id="dialog-form" title="直播阈值配置">
+    <form>
+        <fieldset>
+            <label for="video_bitrate">视频码率阈值</label>
+            <input type="text" name="video_bitrate" id="video_bitrate"
+                   class="text ui-widget-content ui-corner-all">
+            <!-- Allow form submission with keyboard without duplicating the dialog button -->
+            <input type="hidden" id="threshold_live_id">
+            <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
+        </fieldset>
+    </form>
+</div>
+
+<input type="hidden" value="live_now" id="page_type">
+<input type="hidden" value="{{ admin_flag }}" id="admin_flag">
+<script>
+    var scripts = [null,
+        "{{STATIC_URL}}assets/js/jqGrid/jquery.jqGrid.min.js",
+        "{{STATIC_URL}}assets/js/jqGrid/i18n/grid.locale-en.js",
+        "{{STATIC_URL}}assets/js/kankan/live_monitor.js",
+        null];
+
+    ace.load_ajax_scripts(scripts, function () {
+
+        // formatter转化使用
+        var ip_dict = {};
+        //下拉框显示
+        var ip_list_str;
+
+
+        /**
+         * 预先加载ip列表
+         */
+        function pre_load_ip() {
+
+            $.ajax({
+                url: 'livemonitor/load_ip_list/',
+                method: "GET",
+                async: false,
+                success: function (data) {
+                    var ip_list = data['ip_list'];
+                    ip_list_str = "-1:All;";
+                    // 转为dict
+                    for (var i = 0; i < ip_list.length; i++) {
+                        ip_dict[ip_list[i]['ip']] = ip_list[i]['name'];
+                        ip_list_str += ip_list[i]['ip'] + ":" + ip_list[i]['ip'] + "(" + ip_list[i]['name'] + ");";
+                    }
+                    ip_list_str = ip_list_str.substring(0, ip_list_str.length - 1);
+                    //console.log(ip_list_str);
+                },
+                error: function () {
+                    alert("Error with AJAX callback");
+                }
+            });
+        }
+
+
+        pre_load_ip();
+        pre_load_app();
+
+        function ip_formatter(cellvalue, options, rowObject) {
+            return cellvalue + "(" + ip_dict[cellvalue] + ")";
+        }
+
+        jQuery(function ($) {
+
+            var grid_selector = "#grid-table";
+            var pager_selector = "#grid-pager";
+            //resize to fit page size
+            $(window).on('resize.jqGrid', function () {
+                $(grid_selector).jqGrid('setGridWidth', $(".page-content").width());
+            });
+            //resize on sidebar collapse/expand
+            var parent_column = $(grid_selector).closest('[class*="col-"]');
+            $(document).on('settings.ace.jqGrid', function (ev, event_name, collapsed) {
+                if (event_name === 'sidebar_collapsed' || event_name === 'main_container_fixed') {
+                    //setTimeout is for webkit only to give time for DOM changes and then redraw!!!
+                    setTimeout(function () {
+                        $(grid_selector).jqGrid('setGridWidth', parent_column.width());
+                    }, 0);
+                }
+            });
+
+
+            jQuery(grid_selector).jqGrid({
+                //direction: "rtl",
+
+                //替换的数据-----------------------------
+                url: "livemonitor/load_live_now_data/",
+                datatype: "json",
+                //-----------------------------------
+                colNames: ['直播流ID', 'app', '流名称', '服务器IP', '推流IP', '推流时间', '是否保存', '阈值', '报警对象', '操作'],
+                colModel: [
+                    {
+                        name: "live_id",
+                        editable: false,
+                        align: "center",
+                        hidden: true
+
+                    },
+
+                    {
+                        name: "app", editable: false, align: "center",
+                        stype: "select",
+                        formatter: ap_formatter,
+                        searchoptions: {
+                            value: app_list_str,
+                            defaultValue: "-1"
+                        }
+                    },
+                    {name: "live_name", editable: false, align: "center"},
+                    {
+                        name: "ip", editable: false, align: "center",
+                        stype: "select",
+                        formatter: ip_formatter,
+                        searchoptions: {
+                            value: ip_list_str,
+                            defaultValue: "-1"
+                        }
+                    },
+                    {name: "publish_cip", editable: false, align: "center"},
+                    {name: "start_time", search: false, editable: false, align: "center"},
+                    {
+                        name: "is_saved",
+                        editable: false,
+                        formatter: save_live_formatter,
+                        align: "center",
+                        stype: "select",
+                        searchoptions: {
+                            value: "-1:All;1:是;0:否",
+                            defaultValue: "-1"
+                        }
+                    },
+                    {
+                        name: 'thresholds',
+                        editable: false,
+                        search: false,
+                        align: "center",
+                        formatter: threshold_live_formatter,
+                    },
+                    {
+                        name: 'alarmer',
+                        editable: false,
+                        search: false,
+                        align: "center",
+                    },
+                    {
+                        name: 'action',
+                        editable: false,
+                        search: false,
+                        align: "center",
+                        formatter: monitor_data_formatter,
+                    },
+
+
+                ],
+
+                viewrecords: true,
+                rowNum: 20,
+                rowList: [10, 20, 30],
+                jsonReader: {
+                    repeatitems: false,
+                    root: "grid_data",             // 数据行（默认为：rows）
+                    page: "current_page",           // 当前页
+                    total: "total_page",    // 总页数
+                    records: "records",  // 总记录数
+                },
+                pager: pager_selector,
+                height: "auto",
+                altRows: true,
+                //toppager: true,
+                //records: 19,
+
+                multiselect: true,
+                //multikey: "ctrlKey",
+                multiboxonly: true,
+
+                loadComplete: function (data) {
+                    var table = this;
+
+                    setTimeout(function () {
+
+                        enableTooltips(table);
+                    }, 0);
+
+
+                    {#                    var ids = jQuery(grid_selector).jqGrid('getDataIDs');#}
+                    {#                    for (var i = 0; i < ids.length; i++) {#}
+                    {#                        var rowId = ids[i];#}
+                    {#                        var rowData = jQuery(grid_selector).jqGrid('getRowData', rowId);#}
+                    {#                        //var button = "<a  onclick='load_monitor_data(" + rowData['live_id'] + ")' href='#'>查看</a>";#}
+                    {#                        var button = "<label><input name='switch-field-1' class='ace ace-switch ace-switch-4 btn-rotate' type='checkbox' /><span class='lbl'></span> </label>";#}
+                    {#                        jQuery(grid_selector).jqGrid('setCell', rowId, 'action', button);#}
+                    {#                        //console.log(rowData);#}
+                    {##}
+                    {#                    }#}
+
+                },
+
+                //editurl: "livecms/livehot_edit/",//update 请求地址
+                caption: "直播管理",//待修改
+
+
+            });
+            $(window).triggerHandler('resize.jqGrid');//trigger window resize to make the grid get the correct size
+
+
+            //enable search/filter toolbar
+            jQuery(grid_selector).jqGrid('filterToolbar', {defaultSearch: true, stringResult: true});
+            jQuery(grid_selector).filterToolbar({});
+
+
+        });
+
+
+        function enableTooltips(table) {
+            $('.navtable .ui-pg-button').tooltip({container: 'body'});
+            $(table).find('.ui-pg-div').tooltip({container: 'body'});
+        }
+
+
+    });
+
+
+</script>

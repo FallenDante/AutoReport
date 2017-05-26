@@ -1,0 +1,24 @@
+<div>
+    <div class="space-4"></div>
+
+    <div class="form-group ">
+        <label class="col-sm-3 control-label no-padding-right" for="form-field-1"> </label>
+
+        <div class="col-sm-9" name="label_stat_select_area">
+            <select name="label_stat_select1" style="width: 15%">
+                <option value="0" selected="selected">指标</option>
+            </select>
+            <select name="label_stat_op" style="width: 8%">
+                <option value="0" selected="selected">运算符</option>
+                <!--改成动态加载，TODO-->
+                <option value="division">除以</option>
+            </select>
+            <select name="label_stat_select2" style="width: 15%">
+                <option value="0" selected="selected">指标</option>
+            </select>
+            <input type="text" name="stat_label_note" placeholder="字段名称" style="width:15%">
+            <button onclick="jQuery(this).parent().parent().parent().empty();" style="width: 5%">删除</button>
+        </div>
+
+    </div>
+</div>

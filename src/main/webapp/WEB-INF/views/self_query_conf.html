@@ -1,0 +1,358 @@
+<title>响巢看看数据系统</title>
+
+<link rel="stylesheet" href="{{ STATIC_URL }}assets/css/jquery-ui.custom.min.css"/>
+<link rel="stylesheet" href="{{ STATIC_URL }}assets/css/jquery-ui.min.css"/>
+<link rel="stylesheet" href="{{ STATIC_URL }}assets/css/chosen.css"/>
+<link rel="stylesheet" href="{{ STATIC_URL }}assets/css/datepicker.css"/>
+<link rel="stylesheet" href="{{ STATIC_URL }}assets/css/bootstrap-timepicker.css"/>
+<link rel="stylesheet" href="{{ STATIC_URL }}assets/css/daterangepicker.css"/>
+<link rel="stylesheet" href="{{ STATIC_URL }}assets/css/bootstrap-datetimepicker.css"/>
+<!--<link rel="stylesheet" href="{{STATIC_URL}}assets/css/colorpicker.css" />-->
+<link rel="stylesheet" href="{{ STATIC_URL }}assets/css/ui.jqgrid.css"/>
+
+<!-- ajax layout which only needs content area -->
+<div class="page-header">
+    <h1>
+        自助sql查询
+    </h1>
+</div><!-- /.page-header -->
+
+<div class="row">
+    <div class="col-xs-12">
+        <!-- PAGE CONTENT BEGINS -->
+        <form class="form-horizontal" role="form">
+
+
+            <div class="form-group">
+                <label class="col-sm-3 control-label no-padding-right" for="form-field-1"> sql 语句 </label>
+
+                <div class="col-sm-9">
+                    <textarea id="query_conf_sql" class="autosize-transition col-xs-8  "></textarea>
+                </div>
+            </div>
+
+            <div class="space-4"></div>
+            <!-- #section:elements.form -->
+            <div class="form-group">
+                <label class="col-sm-3 control-label no-padding-right" for="form-field-1"> 表头 </label>
+
+                <div class="col-sm-9">
+                    <input type="text" id="query_conf_header" placeholder="" class="col-xs-10 col-sm-5"/>
+                </div>
+            </div>
+
+            <div class="space-4"></div>
+            <!-- #section:elements.form -->
+            <div class="form-group">
+                <label class="col-sm-3 control-label no-padding-right" for="form-field-1"> sql说明 </label>
+
+                <div class="col-sm-9">
+                    <input type="text" id="query_conf_note" placeholder="" class="col-xs-10 col-sm-5"/>
+                </div>
+            </div>
+
+            <div class="space-4"></div>
+            <!-- #section:elements.form -->
+            <div class="form-group ">
+                <label class="col-sm-3 control-label no-padding-right" for="form-field-1"> 选择报表 </label>
+
+                <div class="col-sm-9">
+                    <select class="form-control" id="saved_sql_dropdown" style="width: 35%">
+                        <option value="0">新增</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="space-4"></div>
+
+            <div class="form-group">
+                <label class="col-sm-3 control-label no-padding-right" for="form-input-readonly"> 菜单URL </label>
+
+                <div class="col-sm-9">
+                    <input readonly="" type="text" class="col-xs-10 col-sm-5" id="callback_menu"/>
+                    {#					<span class="help-inline col-xs-12 col-sm-7">#}
+                    {#						<label class="middle">#}
+                    {#                            <input class="ace" type="checkbox" id="id-disable-check"/>#}
+                    {#                            <span class="lbl"> Disable it!</span>#}
+                    {#                        </label>#}
+                    {#					</span>#}
+                </div>
+            </div>
+            <!-- /section:elements.form -->
+            <div class="space-4"></div>
+
+
+            <div class="clearfix form-actions">
+                <div class="col-md-offset-3 col-md-9">
+                    <button class="btn btn-info" type="button" id="self_query_query">
+                        <i class="ace-icon fa fa-check bigger-110"></i>
+                        查询
+                    </button>
+
+                    &nbsp; &nbsp; &nbsp;
+                    <button class="btn btn-info" type="button" id="self_query_insert">
+                        <i class="ace-icon fa fa-check bigger-110"></i>
+                        增加
+                    </button>
+                    &nbsp; &nbsp; &nbsp;
+                    <button class="btn btn-info" type="button" id="self_query_update">
+                        <i class="ace-icon fa fa-check bigger-110"></i>
+                        修改
+                    </button>
+                    &nbsp; &nbsp; &nbsp;
+                    <button class="btn btn-info" type="button" id="self_query_delete">
+                        <i class="ace-icon fa fa-check bigger-110"></i>
+                        删除
+                    </button>
+                </div>
+            </div>
+
+            <div class="hr hr-24"></div>
+
+
+        </form>
+
+
+        <!-- PAGE CONTENT ENDS -->
+    </div>
+    <!-- /.col -->
+</div><!-- /.row -->
+<div class="row">
+    <div class="col-xs-12" id="grid_container" style="padding-left:0">
+
+        <!-- <table id="grid-table"></table>-->
+        <!--暂不用分页功能-->
+        <!--<div id="grid-pager"></div>-->
+
+        <script type="text/javascript">
+            var $path_base = "../..";//in Ace demo this will be used for editurl parameter
+        </script>
+    </div>
+    <!-- /.col -->
+</div><!-- /.row -->
+
+<!-- page specific plugin scripts -->
+
+<!--[if lte IE 8]>
+<script src="{{STATIC_URL}}assets/js/excanvas.min.js"></script>
+<![endif]-->
+<script type="text/javascript">
+    var scripts = [null, "{{STATIC_URL}}assets/js/jquery-ui.custom.min.js",
+        "{{STATIC_URL}}assets/js/chosen.jquery.min.js",
+        "{{STATIC_URL}}assets/js/date-time/moment.min.js",
+        "{{STATIC_URL}}assets/js/date-time/daterangepicker.min.js",
+        "{{STATIC_URL}}assets/js/jqGrid/jquery.jqGrid.min.js",
+        "{{STATIC_URL}}assets/js/jqGrid/i18n/grid.locale-en.js",
+        "{{STATIC_URL}}assets/js/jquery.autosize.min.js",
+        "{{STATIC_URL}}assets/js/jquery.inputlimiter.1.3.1.min.js",
+        "{{STATIC_URL}}assets/js/jquery.maskedinput.min.js", "{{STATIC_URL}}assets/js/bootstrap-tag.min.js",
+        "{{STATIC_URL}}assets/js/kankan/jqGrid/sql-query-helper.js",
+        null]
+    ace.load_ajax_scripts(scripts, function () {
+        //inline scripts related to this page
+        jQuery(function ($) {
+
+            $('.chosen-select').chosen({allow_single_deselect: true});
+            //resize the chosen on window resize
+
+            $(window)
+                    .off('resize.chosen')
+                    .on('resize.chosen', function () {
+                        $('.chosen-select').each(function () {
+                            var $this = $(this);
+                            $this.next().css({'width': $this.parent().width()});
+                        })
+                    }).trigger('resize.chosen');
+
+
+            $('#chosen-multiple-style').on('click', function (e) {
+                var target = $(e.target).find('input[type=radio]');
+                var which = parseInt(target.val());
+                if (which == 2) $('#form-field-select-4').addClass('tag-input-style');
+                else $('#form-field-select-4').removeClass('tag-input-style');
+            });
+
+
+            $('[data-rel=tooltip]').tooltip({container: 'body'});
+            $('[data-rel=popover]').popover({container: 'body'});
+
+            $('textarea[class*=autosize]').autosize({append: "\n"});
+            $('textarea.limited').inputlimiter({
+                remText: '%n character%s remaining...',
+                limitText: 'max allowed : %n.'
+            });
+
+
+            //"jQuery UI Slider"
+            //range slider tooltip example
+
+
+            //////////
+
+            //typeahead.js
+            //example taken from plugin's page at: https://twitter.github.io/typeahead.js/examples/
+            /**
+             //or you can activate the chosen plugin after modal is shown
+             //this way select element becomes visible with dimensions and chosen works as expected
+             $('#modal-form').on('shown', function () {
+			$(this).find('.modal-chosen').chosen();
+		})
+             */
+
+        });
+
+        // my script start------------------------------------------------------------------
+        var sql_dropdown = "#saved_sql_dropdown";
+        // 初始化已保存sql下拉列表
+        load_sql_dropdown();
+
+        // query sql data
+        $("#self_query_query").click(function () {
+            query_sql_data($("#query_conf_sql").val(), $("#query_conf_header").val());
+        });
+
+        // insert & query data
+        $("#self_query_insert").click(function () {
+            var colName, colModel, gridData;
+            var sql_clause = $("#query_conf_sql").val();
+            var header = $("#query_conf_header").val().replace("，", ",");
+            var note = $("#query_conf_note").val();
+            $.ajax({
+                url: 'self_query/self_query_insert/',
+                method: "POST",
+                data: {
+                    sql_clause: sql_clause,
+                    header: header,
+                    note: note,
+                    query_type: "sql_query",
+                    time_period: 30
+                },
+                success: function (msg) {
+                    if (msg.status == true) {
+                        alert("添加成功！")
+                    } else {
+                        alert(msg.msg);
+                    }
+                    // 加载回显URL
+                    jQuery('#callback_menu').val(msg.menu);
+                    destroyGrid();
+                    //根据当前的sql进行查询
+                    query_sql_data(sql_clause, header);
+                    load_sql_dropdown();
+                    //load_saved_sql_menu();
+                },
+                error: function () {
+                    alert("Error with AJAX callback");
+                }
+            });
+
+        });
+
+        $("#self_query_update").click(function () {
+            var colName, colModel, gridData;
+            var sql_clause = $("#query_conf_sql").val();
+            var header = $("#query_conf_header").val().replace("，", ",");
+            $.ajax({
+                url: 'self_query/self_query_update/',
+                method: "POST",
+                data: {
+                    sql_clause: sql_clause,
+                    header: header,
+                    note: $("#query_conf_note").val(),
+                    query_type: 'sql_query',
+                    id: jQuery(sql_dropdown).children('option:selected').val(),
+                    time_period: 30
+                },
+                success: function (msg) {
+                    //console.log(msg);
+                    if (msg.status == true) {
+                        alert("修改成功！")
+                    } else {
+                        alert(msg.msg);
+                    }
+                    destroyGrid();
+                    query_sql_data(sql_clause, header);
+                    //load_sql_dropdown();
+                },
+                error: function () {
+                    alert("Error with AJAX callback");
+                }
+            });
+
+        });
+
+        $("#self_query_delete").click(function () {
+            $.ajax({
+                url: "self_query/self_query_delete/",
+                method: "post",
+                data: {id: $("#saved_sql_dropdown").val()},
+                success: function (msg) {
+                    load_sql_dropdown();
+                    //load_saved_sql_menu();
+                    clear_sql_input();
+                    alert("删除成功！");
+                    destroyGrid();
+                },
+
+
+            });
+        });
+
+
+        // 查询已存sql
+        jQuery(sql_dropdown).change(function () {
+            //重置查询
+            if ($(this).children('option:selected').val() == '0') {
+                clear_sql_input();
+                destroyGrid();
+                return 0;
+            }
+
+            $.ajax({
+                method: "GET",
+                url: "self_query/query_sql_by_pk/",
+                data: {id: $(this).children('option:selected').val()},
+                beforeSend: ajax_isloading($(".form-horizontal")),
+                success: function (data) {
+                    ajax_hideloading($(".form-horizontal"));
+                    var opts = $.parseJSON(data);
+                    $("#query_conf_note").val(opts.note);
+                    $("#query_conf_header").val(opts.header);
+                    $("#query_conf_sql").val(opts.sql_clause);
+                    $("#callback_menu").val(opts.menu);
+                }
+            });
+        });
+
+
+        // 加载已存sql下拉列表
+        function load_sql_dropdown() {
+            //初始化下拉列表
+            $.ajax({
+                method: "GET",
+                url: "self_query/query_saved_sql/",
+                data: {query_type: 'sql_query'},
+                success: function (data) {
+                    var opts = $.parseJSON(data).saved_sql;
+                    //console.log(opts.options_data)
+                    jQuery(sql_dropdown).empty().append("<option value='0'>新增</option>");
+                    $.each(opts, function (i, d) {
+                        jQuery(sql_dropdown).append('<option  value="' + d.id + '">' + d.id + d.note + '</option>');
+                    });
+                }
+            });
+        }
+
+        //清空当前sql信息
+        function clear_sql_input() {
+            $("#query_conf_sql").val('');
+            $("#query_conf_header").val('');
+            $("#query_conf_note").val('');
+            $("#callback_menu").val('');
+        }
+
+
+        // my script end--------------------------------------------------------------------
+
+    });
+</script>

@@ -1,0 +1,64 @@
+<div style="width: 10%;float: left">
+    <h3>video 参数：</h3>
+    <span id="video_codec"></span>
+    <span id="video_profile"></span>
+    <span id="video_level"></span>
+    <br>
+
+    <h3>audio 参数：</h3>
+    <span id="audio_codec"></span>
+    <span id="audio_sample_rate"></span>
+    <span id="audio_channel"></span>
+    <span id="audio_profile"></span>
+    <br>
+
+    <h3>已推时长：</h3>
+    <span id="passed_time"></span>
+</div>
+<div style="width: 90%;float: left">
+
+    <iframe src="http://topics.kankan.com/live/ftest/index.html?sn={{ app }}.{{ live_name }}&lh=http://gb.portal.live.kankan.com/"
+            style="width: 100%;height: 488px; "></iframe>
+
+</div>
+<input type="hidden" value="{{ video }}" id="video_area">
+<input type="hidden" value="{{ audio }}" id="audio_area">
+<input type="hidden" value="{{ start_time }}" id="start_time_area">
+
+{#sn的参数值替换为{{ app }}.{{ stream }}#}
+<script>
+    var video_json = jQuery.parseJSON(jQuery("#video_area").val());
+    jQuery("#video_codec").html("<h5>codec: " + video_json['codec'] + "</h5>");
+    jQuery("#video_profile").html("<h5>profile: " + video_json['profile'] + "</h5>");
+    jQuery("#video_level").html("<h5>level: " + video_json['level'] + "</h5>");
+    var audio_json = jQuery.parseJSON(jQuery("#audio_area").val());
+    jQuery("#audio_codec").html("<h5>codec: " + audio_json['codec'] + "</h5>");
+    jQuery("#audio_sample_rate").html("<h5>sample_rate: " + audio_json['sample_rate'] + "</h5>");
+    jQuery("#audio_channel").html("<h5>channel: " + audio_json['channel'] + "</h5>");
+    jQuery("#audio_profile").html("<h5>profile: " + audio_json['profile'] + "</h5>");
+    // 计算时间差：
+    var strtime = jQuery("#start_time_area").val();
+
+    caculate_pass_time();
+    timeclock = setInterval(function () {
+        caculate_pass_time();
+    }, 60000);
+
+    function caculate_pass_time() {
+        //console.log(last_record_time_stamp);
+        //console.log(new Date(strtime).getTime());
+        var pass_time_stamp = new Date().getTime() - new Date(strtime).getTime();
+        //计算出相差天数
+        var days = Math.floor(pass_time_stamp / (24 * 3600 * 1000));
+        //计算出小时数
+        var leave1 = pass_time_stamp % (24 * 3600 * 1000); //计算天数后剩余的毫秒数
+        var hours = Math.floor(leave1 / (3600 * 1000));
+        //计算相差分钟数
+        var leave2 = leave1 % (3600 * 1000);     //计算小时数后剩余的毫秒数
+        var minutes = Math.floor(leave2 / (60 * 1000));
+        jQuery('#passed_time').html(days + "天" + hours + "小时" + minutes + "分");
+
+    }
+
+
+</script>

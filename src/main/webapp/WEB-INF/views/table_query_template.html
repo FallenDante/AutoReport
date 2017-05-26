@@ -1,0 +1,113 @@
+{#<link rel="stylesheet" href="{{ STATIC_URL }}assets/css/ui.jqgrid.css"/>#}
+{#<link rel="stylesheet" href="{{ STATIC_URL }}assets/css/jquery-ui.custom.min.css"/>#}
+<link rel="stylesheet" href="{{ STATIC_URL }}assets/css/uncompressed/jquery-ui.custom.css"/>
+<link rel="stylesheet" href="{{ STATIC_URL }}assets/css/jquery-ui.min.css"/>
+<link rel="stylesheet" href="{{ STATIC_URL }}assets/css/chosen.css"/>
+<link rel="stylesheet" href="{{ STATIC_URL }}assets/css/ui.jqgrid.css"/>
+
+
+<div class="page-header">
+    <div class="input-group col-xs-8 col-sm-2" id="range-time-area">
+
+    </div>
+</div>
+
+{#<div class="page-header">#}
+{##}
+{#    <div class="input-group col-xs-8 col-sm-2" id="operation-event-area">#}
+{##}
+{#    </div>#}
+{##}
+{##}
+{#</div>#}
+
+<div id="highChartArea"></div>
+
+
+<div class="row">
+    <div class="col-xs-12" id="grid_container">
+
+        <!-- <table id="grid-table"></table>-->
+        <!--<div id="grid-pager"></div>-->
+
+        <script type="text/javascript">
+            var $path_base = "../..";//in Ace demo this will be used for editurl parameter
+        </script>
+    </div>
+    <!-- /.col -->
+</div><!-- /.row -->
+
+<script type="text/javascript">
+    {#        "{{STATIC_URL}}assets/js/jquery-ui.custom.min.js",#}
+    var scripts = [null,
+        "{{STATIC_URL}}assets/js/uncompressed/jquery-ui.custom.js",
+        "{{STATIC_URL}}assets/js/chosen.jquery.min.js",
+        "{{STATIC_URL}}assets/js/jqGrid/jquery.jqGrid.min.js",
+        "{{STATIC_URL}}assets/js/jqGrid/i18n/grid.locale-en.js",
+        "{{STATIC_URL}}assets/js/jquery.autosize.min.js",
+        "{{STATIC_URL}}assets/js/jquery.inputlimiter.1.3.1.min.js",
+        "{{STATIC_URL}}assets/js/kankan/jqGrid/tbl-query-helper.js",
+        "{{STATIC_URL}}assets/js/kankan/highCharts/highcharts-helper.js",
+        "{{STATIC_URL}}assets/js/kankan/jqGrid/jqGridServer.js",
+        null];
+
+    ace.load_ajax_scripts(scripts, function () {
+        jQuery(function ($) {
+
+
+            $('.chosen-select').chosen({allow_single_deselect: true});
+            //resize the chosen on window resize
+
+            $(window)
+                    .off('resize.chosen')
+                    .on('resize.chosen', function () {
+                        $('.chosen-select').each(function () {
+                            var $this = $(this);
+                            $this.next().css({'width': $this.parent().width()});
+                        })
+                    }).trigger('resize.chosen');
+
+
+            $('#chosen-multiple-style').on('click', function (e) {
+                var target = $(e.target).find('input[type=radio]');
+                var which = parseInt(target.val());
+                if (which == 2) $('#form-field-select-4').addClass('tag-input-style');
+                else $('#form-field-select-4').removeClass('tag-input-style');
+            });
+
+
+            $('[data-rel=tooltip]').tooltip({container: 'body'});
+            $('[data-rel=popover]').popover({container: 'body'});
+
+            $('textarea[class*=autosize]').autosize({append: "\n"});
+            $('textarea.limited').inputlimiter({
+                remText: '%n character%s remaining...',
+                limitText: 'max allowed : %n.'
+            });
+
+            //-------------------my scripts
+            var query_id ={{ query_id }};
+            var function_id = {{ function }};
+            //init_grid_from_server(query_id);
+            var opts;
+            $.ajax({
+                method: "GET",
+                url: "self_query/table_query_sql_by_pk/",
+                data: {id: query_id},
+                async: false,
+                success: function (data) {
+                    opts = $.parseJSON(data);
+                    if (opts.hasObj == false) {
+                        alert("不存在该报表！");
+                        return false;//TODO test
+                    }
+                }
+            });
+            var renderInstance = new jqGridServer(opts);
+            var jqGridContainer = "#grid_container";
+            renderJqGrid(jqGridContainer, renderInstance);
+        });
+
+
+    });
+</script>

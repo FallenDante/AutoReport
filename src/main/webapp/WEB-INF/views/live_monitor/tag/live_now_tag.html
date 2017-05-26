@@ -1,0 +1,216 @@
+<div id="now_container" style="height: 400px; min-width: 310px"></div>
+<input type="hidden" id="live_id_area" value="{{ live_id }}">
+<input type="hidden" id="app_area" value="{{ app }}">
+<input type="hidden" id="stream_area" value="{{ stream }}">
+<input type="hidden" id="ip_area" value="{{ ip }}">
+{#<script src="{{ STATIC_URL }}assets/js/kankan/highCharts/highstock.js"></script>#}
+<script>
+    // 当前时间时间戳
+    // var pre_live_ms = (new Date()).getTime();
+    // 实时加载的上一条时间戳，用来查询实时数据，范围是五分钟内
+    var pre_live_ms = 0;
+
+
+    /***
+     * 加载初始数据
+     */
+    function init_highstock_data() {
+        var data_series = {};
+        $.ajax({
+            url: 'livemonitor/load_monitor_period_data/',
+            method: "GET",
+            async: false,
+            data: {'live_id': jQuery("#live_id_area").val()},
+            success: function (data) {
+                //TODO 检查是否有数据
+                var monitor_records = data['monitro_records'];
+
+                var recv_avg = [];
+                var recv_3s_a = [];
+                var recv_3s_v = [];
+                var recv_3s_fps = [];
+                for (var i = 0; i < monitor_records.length; i++) {
+                    recv_avg.push([monitor_records[i]['live_ms'], jQuery.parseJSON(monitor_records[i]['kbps'])['recv_avg']]);
+                    recv_3s_a.push([monitor_records[i]['live_ms'], jQuery.parseJSON(monitor_records[i]['kbps'])['recv_3s_a']]);
+                    recv_3s_v.push([monitor_records[i]['live_ms'], jQuery.parseJSON(monitor_records[i]['kbps'])['recv_3s_v']]);
+                    recv_3s_fps.push([monitor_records[i]['live_ms'], jQuery.parseJSON(monitor_records[i]['kbps'])['recv_3s_fps']]);
+                }
+                data_series['avg_bitrate'] = recv_avg;
+                data_series['audio_bitrate'] = recv_3s_a;
+                data_series['video_bitrate'] = recv_3s_v;
+                data_series['fps'] = recv_3s_fps;
+
+                //最新的监控时间
+
+                if (monitor_records.length > 0) {
+                    pre_live_ms = monitor_records[monitor_records.length - 1]['live_ms'];
+
+                }
+
+
+            },
+            error: function () {
+                alert("Error with AJAX callback");
+            }
+        });
+        return data_series
+    }
+
+    function draw_highstock() {
+        var period_time_data = init_highstock_data();
+        jQuery('#now_container').empty();
+        Highcharts.setOptions({
+            global: {
+                useUTC: false
+            }
+        });
+        $('#now_container').highcharts('StockChart', {
+            chart: {
+                events: {
+                    load: function () {
+                        // set up the updating of the chart each second
+                        var recv_avg = this.series[0];
+                        var recv_3s_a = this.series[1];
+                        var recv_3s_v = this.series[2];
+                        var recv_3s_fps = this.series[3];
+                        //定时请求最新的数据
+                        // 没有数据，则默认当前时间
+                        pre_live_ms = pre_live_ms == 0 ? (new Date()).getTime() : pre_live_ms;
+                        stock_lock = setInterval(function () {
+                            $.ajax({
+                                url: 'livemonitor/load_monitor_new_data/',
+                                method: "GET",
+                                async: false,
+                                data: {'live_id': jQuery("#live_id_area").val(), 'last_live_ms': pre_live_ms},
+                                success: function (data) {
+                                    var monitor_records = data['monitro_records'];
+                                    //console.log(monitor_records);
+                                    if (monitor_records == undefined || monitor_records.length == 0) {
+                                        return;//没有数据
+                                    }
+                                    //更新时间
+                                    pre_live_ms = monitor_records[monitor_records.length - 1]['live_ms'];
+                                    //更新已经推流的时长
+                                    last_record_time_stamp = pre_live_ms;
+                                    // 添加实时数据
+                                    for (var i = 0; i < monitor_records.length; i++) {
+                                        var kbps = jQuery.parseJSON(monitor_records[i]['kbps']);
+                                        recv_avg.addPoint([monitor_records[i]['live_ms'], kbps['recv_avg']], true, true);
+                                        recv_3s_a.addPoint([monitor_records[i]['live_ms'], kbps['recv_3s_a']], true, true);
+                                        recv_3s_v.addPoint([monitor_records[i]['live_ms'], kbps['recv_3s_v']], true, true);
+                                        recv_3s_fps.addPoint([monitor_records[i]['live_ms'], kbps['recv_3s_fps']], true, true);
+                                    }
+                                },
+                                error: function () {
+                                    alert("Error with AJAX callback");
+                                }
+                            });
+                        }, 3000);
+                    }
+                }
+            },
+            rangeSelector: {
+                buttons: [{
+                    count: 1,
+                    type: 'minute',
+                    text: '1M'
+                }, {
+                    count: 3,
+                    type: 'minute',
+                    text: '3M'
+                }, {
+                    type: 'all',
+                    text: 'All'
+                }],
+                inputEnabled: false,
+                selected: 0
+            },
+
+            yAxis: [
+                { // Primary yAxis
+
+                    labels: {
+                        format: '{value}kps',
+                    },
+
+                    title: {
+                        text: '码率',
+
+                    },
+
+                },
+                { // Secondary yAxis
+                    title: {
+                        text: '视频帧率',
+                        style: {
+                            color: '#EE7700'
+                        }
+                    },
+                    opposite: false,// stockchart 的设置和常规的相反
+                    labels: {
+                        format: '{value}',
+                        style: {
+                            color: '#EE7700'
+                        }
+                    },
+
+                }
+            ],
+            tooltip: {
+                shared: true
+            },
+
+            title: {
+                text: "<strong>" + jQuery("#app_area").val() + "." + jQuery("#stream_area").val() + " (" + jQuery("#ip_area").val() + ") " + '实时数据</strong>',
+                useHTML: true
+            },
+
+            exporting: {
+                enabled: false
+            },
+            legend: {
+                layout: 'vertical',
+                align: 'center',
+                verticalAlign: 'bottom',
+                borderWidth: 0
+
+            },
+
+            series: [
+                {
+                    name: '总码率',
+                    data: period_time_data['avg_bitrate'],
+                    yAxis: 0,
+                },
+                {
+                    name: '音频码率',
+                    data: period_time_data['audio_bitrate'],
+                    yAxis: 0,
+                },
+                {
+                    name: '视频码率',
+                    data: period_time_data['video_bitrate'],
+                    yAxis: 0,
+                },
+                {
+                    name: '视频帧率',
+                    data: period_time_data['fps'],
+                    yAxis: 1,
+                    {#                    type: 'column',#}
+                }
+            ]
+        });
+
+    }
+    draw_highstock();
+
+
+    /**
+     * 加载实时监控数据
+     */
+    function load_monitor_new_data() {
+
+    }
+
+
+</script>

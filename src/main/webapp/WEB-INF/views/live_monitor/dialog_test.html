@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+
+    <link rel="stylesheet" href="{{ STATIC_URL }}assets/css/jquery-ui.min.css"/>
+    <style>
+        label, input {
+            display: block;
+        }
+
+        input.text {
+            margin-bottom: 12px;
+            width: 95%;
+            padding: .4em;
+        }
+
+        fieldset {
+            padding: 0;
+            border: 0;
+            margin-top: 25px;
+        }
+
+
+    </style>
+    <script src="{{ STATIC_URL }}assets/js/uncompressed/jquery-ui.js"></script>
+    <script>
+        $(function () {
+            var dialog, form,
+                    name = $("#name"),
+                    email = $("#email"),
+                    password = $("#password"),
+                    allFields = $([]).add(name).add(email).add(password);
+
+
+            // 添加阀值
+            function addThresholds() {
+                dialog.dialog("close");
+                return true
+
+            }
+
+            dialog = $("#dialog-form").dialog({
+                autoOpen: false,
+                height: 400,
+                width: 350,
+                modal: true,
+                buttons: {
+                    "提交": addThresholds,
+                    "取消": function () {
+                        dialog.dialog("close");
+                    }
+                },
+                close: function () {
+                    form[0].reset();
+                    allFields.removeClass("ui-state-error");
+                }
+            });
+
+            form = dialog.find("form").on("submit", function (event) {
+                event.preventDefault();
+                addThresholds();
+            });
+
+            $("#create-user").button().on("click", function () {
+                dialog.dialog("open");
+            });
+        });
+    </script>
+</head>
+<body>
+
+<div id="dialog-form" title="直播阀值配置">
+
+    <form>
+        <fieldset>
+            <label for="name">Name</label>
+            <input type="text" name="name" id="name" value="Jane Smith" class="text ui-widget-content ui-corner-all">
+            <label for="email">Email</label>
+            <input type="text" name="email" id="email" value="jane@smith.com"
+                   class="text ui-widget-content ui-corner-all">
+            <label for="password">Password</label>
+            <input type="password" name="password" id="password" value="xxxxxxx"
+                   class="text ui-widget-content ui-corner-all">
+
+            <!-- Allow form submission with keyboard without duplicating the dialog button -->
+            <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
+        </fieldset>
+    </form>
+</div>
+<button id="create-user">Create new user</button>
+</body>
+</html>

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dante.modules.system.dao.SystemDao">
+
+    <select id="queryAccountMenu" resultType="Menu">
+        SELECT
+          MENU_ID AS menuID,
+          MENU_NAME AS menuName,
+          MENU_URL AS menuUrl,
+          MODULE_ID AS moduleID,
+          IN_USE AS inUse,
+          DISPLAY_ORDER AS displayOrder,
+          PARENT_NO AS parentNo
+        FROM menus
+        WHERE MODULE_ID IN
+        (SELECT m.MODULE_ID
+	      FROM module m
+		    LEFT JOIN role_module rm ON m.MODULE_ID = rm.MODULE_ID
+		    LEFT JOIN role r ON r.ROLE_ID = rm.ROLE_ID
+		    LEFT JOIN account_role ar ON ar.ROLE_ID = r.ROLE_ID
+		    LEFT JOIN account a ON a.ACCOUNT_ID = ar.ACCOUNT_ID
+	      WHERE a.ACCOUNT_ID = #{accountID})
+    </select>
+
+    <select id="">
+        SELECT
+	      COLUMN_NAME,
+	      COLUMN_COMMENT
+        FROM
+	      INFORMATION_SCHEMA. COLUMNS
+        WHERE
+	      TABLE_SCHEMA = #{dbName}
+        AND TABLE_NAME = #{}
+    </select>
+
+</mapper>

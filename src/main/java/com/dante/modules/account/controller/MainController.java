@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 /**
  * Created by dante on 2017/5/11.
@@ -39,7 +40,7 @@ public class MainController {
     }
 
     @RequestMapping(value = "logout.do", method = RequestMethod.GET)
-    public String loginOut(){
+    public String loginOut() {
         SecurityUtils.getSubject().logout();
         return "logout_success";
     }
@@ -53,5 +54,10 @@ public class MainController {
         } else {
             return "permission_fail";
         }
+    }
+
+    @ResponseBody
+    public String getJsonRes() {
+        return "";
     }
 }

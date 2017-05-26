@@ -1,0 +1,170 @@
+<title>响巢看看数据系统</title>
+
+<link rel="stylesheet" href="{{ STATIC_URL }}assets/css/jquery-ui.custom.min.css"/>
+<link rel="stylesheet" href="{{ STATIC_URL }}assets/css/jquery-ui.min.css"/>
+{#<link rel="stylesheet" href="{{ STATIC_URL }}assets/css/chosen.css"/>#}
+{#<link rel="stylesheet" href="{{ STATIC_URL }}assets/css/datepicker.css"/>#}
+<link rel="stylesheet" href="{{ STATIC_URL }}assets/css/bootstrap-timepicker.css"/>
+<link rel="stylesheet" href="{{ STATIC_URL }}assets/css/daterangepicker.css"/>
+<link rel="stylesheet" href="{{ STATIC_URL }}assets/css/bootstrap-datetimepicker.css"/>
+<!--<link rel="stylesheet" href="{{STATIC_URL}}assets/css/colorpicker.css" />-->
+<link rel="stylesheet" href="{{ STATIC_URL }}assets/css/ui.jqgrid.css"/>
+<div id="ajax_loading_area">
+    <!-- ajax layout which only needs content area -->
+    <div class="page-header">
+        <h1>
+{#            自定义sql 查询#}
+            <small>
+{#                <i class="ace-icon fa fa-angle-double-right"></i>#}
+                <span id="sql_query_note"></span>
+            </small>
+        </h1>
+    </div>
+    <!-- /.page-header -->
+
+    <div>
+        <div class="col-xs-12">
+            <!-- PAGE CONTENT BEGINS -->
+            <form class="form-horizontal" role="form">
+
+
+                <div class="form-group">
+                    <label class="col-sm-3 control-label no-padding-right" for="form-field-1"> sql 语句 </label>
+
+                    <div class="col-sm-9">
+                        <textarea id="query_conf_sql" class="autosize-transition col-xs-8  "></textarea>
+                    </div>
+                </div>
+
+                <!-- /section:elements.form -->
+                <div class="space-4"></div>
+
+
+                <div class="clearfix form-actions">
+                    <div class="col-md-offset-3 col-md-9">
+                        <button class="btn btn-info" type="button" id="self_query_query">
+                            <i class="ace-icon fa fa-check bigger-110"></i>
+                            查询
+                        </button>
+
+                        &nbsp; &nbsp; &nbsp;
+                        <button class="btn btn-info" type="button" id="self_query_export">
+                            <i class="ace-icon fa fa-check bigger-110"></i>
+                            导出
+                        </button>
+                    </div>
+                </div>
+
+                <div class="hr hr-24"></div>
+
+
+            </form>
+
+
+            <!-- PAGE CONTENT ENDS -->
+        </div>
+        <!-- /.col -->
+    </div>
+    <div>
+        <input type="hidden" id="header"/>
+    </div>
+    <!-- /.row -->
+    <div class="row">
+        <div class="col-xs-12" id="grid_container">
+
+            <script type="text/javascript">
+                var $path_base = "../..";//in Ace demo this will be used for editurl parameter
+            </script>
+        </div>
+        <!-- /.col -->
+    </div>
+    <!-- /.row -->
+</div>
+<!-- page specific plugin scripts -->
+
+<!--[if lte IE 8]>
+<script src="{{STATIC_URL}}assets/js/excanvas.min.js"></script>
+<![endif]-->
+<script type="text/javascript">
+    var scripts = [null, "{{STATIC_URL}}assets/js/jquery-ui.custom.min.js",
+        "{{STATIC_URL}}assets/js/jqGrid/jquery.jqGrid.min.js",
+        "{{STATIC_URL}}assets/js/jqGrid/i18n/grid.locale-en.js",
+        "{{STATIC_URL}}assets/js/jquery.autosize.min.js",
+        "{{STATIC_URL}}assets/js/jquery.inputlimiter.1.3.1.min.js",
+        "{{STATIC_URL}}assets/js/jquery.maskedinput.min.js",
+        "{{STATIC_URL}}assets/js/bootstrap-tag.min.js",
+        "{{STATIC_URL}}assets/js/typeahead.jquery.min.js",
+        "{{STATIC_URL}}assets/js/kankan/jqGrid/sql-query-helper.js",
+        null]
+    ace.load_ajax_scripts(scripts, function () {
+        //inline scripts related to this page
+        jQuery(function ($) {
+
+
+            $(window)
+                    .off('resize.chosen')
+                    .on('resize.chosen', function () {
+                        $('.chosen-select').each(function () {
+                            var $this = $(this);
+                            $this.next().css({'width': $this.parent().width()});
+                        })
+                    }).trigger('resize.chosen');
+
+
+            $('textarea[class*=autosize]').autosize({append: "\n"});
+            $('textarea.limited').inputlimiter({
+                remText: '%n character%s remaining...',
+                limitText: 'max allowed : %n.'
+            });
+
+            // 获取url 参数：
+            {#            function getQueryID(sParam) {#}
+            {#                var pageURL = window.location.href;#}
+            {#                //---------TODO#}
+            {#                //console.log(pageURL.split('?')[1].split('=')[1]);#}
+            {#                return pageURL.split('?')[1].split('=')[1];#}
+            {#            };#}
+            // my script start------------------------------------------------------------------
+
+
+            // 渲染查询的sql信息
+            function renderQueryMsg(opts) {
+                $("#query_conf_sql").val(opts.sql_clause);
+                $("#header").val(opts.header);
+                $("#sql_query_note").html(opts.note);
+            }
+
+
+            // 加载报表相关信息
+            var query_id = {{ query_id }};
+            $.ajax({
+                url: 'self_query/report_by_query_id/',
+                method: "GET",
+                data: {query_id: query_id},
+                beforeSend: ajax_isloading($("#ajax_loading_area")),
+                success: function (msg) {
+                    ajax_hideloading($("#ajax_loading_area"));
+                    if (msg.hasObj == false) {
+                        alert("不存在该报表！");
+                        return
+                    }
+                    renderQueryMsg(msg);
+                    query_sql_data(msg.sql_clause, msg.header);
+                },
+                error: function () {
+                    alert("Error with AJAX callback");
+                }
+            });
+
+            $("#self_query_query").click(function () {
+                query_sql_data($("#query_conf_sql").val(), $("#header").val());
+
+            });
+
+        });
+
+
+        // my script end--------------------------------------------------------------------
+
+    });
+</script>

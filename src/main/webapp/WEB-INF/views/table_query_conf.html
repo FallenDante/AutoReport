@@ -1,0 +1,825 @@
+<title>响巢看看数据系统</title>
+
+<link rel="stylesheet" href="{{ STATIC_URL }}assets/css/ui.jqgrid.css"/>
+{#<link rel="stylesheet" href="{{ STATIC_URL }}assets/css/jquery-ui.custom.min.css"/>#}
+{#<link rel="stylesheet" href="{{ STATIC_URL }}assets/css/jquery-ui.min.css"/>#}
+<link rel="stylesheet" href="{{ STATIC_URL }}assets/css/chosen.css"/>
+<link rel="stylesheet" href="{{ STATIC_URL }}assets/css/bootstrap-timepicker.css"/>
+<link rel="stylesheet" href="{{ STATIC_URL }}assets/css/daterangepicker.css"/>
+<link rel="stylesheet" href="{{ STATIC_URL }}assets/css/bootstrap-datetimepicker.css"/>
+
+
+<!-- ajax layout which only needs content area -->
+<div class="page-header">
+    <h1>
+
+        <h1>自助报表查询</h1>
+
+
+    </h1>
+</div><!-- /.page-header -->
+
+<div class="row">
+    <div class="col-xs-12">
+        <!-- PAGE CONTENT BEGINS -->
+        <form class="form-horizontal" role="form">
+            <!-- #section:elements.form -->
+
+            <!-- #section:elements.form -->
+            <div class="form-group ">
+                <label class="col-sm-3 control-label no-padding-right" for="form-field-1"> 已保存报表 </label>
+
+                <div class="col-sm-9">
+                    <select class="form-control" id="saved_sql_dropdown" style="width: 35%">
+                        <option value="0" selected="selected">新增</option>
+                    </select>
+                </div>
+            </div>
+            <div class="space-4"></div>
+            <div class="form-group ">
+                <label class="col-sm-3 control-label no-padding-right" for="form-field-1"> 数据表 </label>
+
+                <div class="col-sm-9">
+                    <select class="form-control" id="target_table_dropdown" style="width: 45%">
+                        <option value="0" selected="selected">请选择</option>
+                        <!--改成动态加载，TODO-->
+                        {% comment %}<option value="t_partner_v2">t_partner_v2</option>{% endcomment %}
+                    </select>
+                </div>
+            </div>
+            <div class="space-4"></div>
+            <div class="form-group">
+
+                <label class="col-sm-3 control-label no-padding-right" for=""> 指标选择 </label>
+
+                <div class="col-sm-4" id="labels_area">
+
+                    <select multiple="" class="chosen-select" style="width: 35%" id="label_select"
+                            data-placeholder="选择指标">
+
+
+                    </select>
+                </div>
+            </div>
+
+
+            <!--<div class="space-4"></div>-->
+            <div class="space-4"></div>
+            <div class="form-group">
+
+                <label class="col-sm-3 control-label no-padding-right" for=""> 维度选择 </label>
+
+                <div class="col-sm-4" id="dimensions_area">
+
+                    <select multiple="" class="chosen-select" style="width: 35%" id="dimension_select"
+                            data-placeholder="选择维度">
+
+
+                    </select>
+                </div>
+            </div>
+
+            <div class="space-4"></div>
+            <div class="form-group ">
+                <label class="col-sm-3 control-label no-padding-right" for="form-field-1"> 默认排序字段 </label>
+
+                <div class="col-sm-4">
+                    <select class="form-control" id="default_sort__dropdown" style="width: 35%">
+                        {#                        <option value="0" selected="selected">新增</option>#}
+                    </select>
+                </div>
+            </div>
+            <div class="space-4"></div>
+            <div class="form-group ">
+                <label class="col-sm-3 control-label no-padding-right" for="form-field-1"> 下转维度字段 </label>
+
+                <div class="col-sm-4">
+                    <select class="form-control" id="detail_dimension" style="width: 35%">
+                    </select>
+                </div>
+            </div>
+            <div class="space-4"></div>
+            <div class="form-group ">
+                <label class="col-sm-3 control-label no-padding-right" for="form-field-1"> 曲线字段 </label>
+
+                <div class="col-sm-4">
+                    <select class="form-control" id="linechart_label" style="width: 35%">
+                    </select>
+                </div>
+            </div>
+            <div class="space-4"></div>
+            <!-- #section:elements.form -->
+            <div class="form-group">
+                <label class="col-sm-3 control-label no-padding-right" for="form-field-1"> 报表说明 </label>
+
+                <div class="col-sm-9">
+                    <input type="text" id="query_conf_note" placeholder="" class="col-xs-10 col-sm-5"/>
+                </div>
+            </div>
+
+            <div class="space-4"></div>
+            <div class="form-group">
+                <label class="col-sm-3 control-label no-padding-right" for="form-field-1"> 时间模式 </label>
+
+                <div class="col-sm-9">
+                    <div class="radio col-xs-2">
+                        <label>
+                            <input name="time_type_radio" type="radio" class="ace" checked="checked"
+                                   value="add_range_time">
+                            <span class="lbl"> 范围时间</span>
+                        </label>
+                        <select class=" " id="time_period" style="width: 40%">
+                            <option value="1">一天</option>
+                            <option value="30" selected="selected">三十天</option>
+
+
+                        </select>
+                    </div>
+                    <div class="radio col-xs-2">
+                        <label>
+                            <input name="time_type_radio" type="radio" class="ace" value="add_single_time">
+                            <span class="lbl"> 单个时间</span>
+                        </label>
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="space-4"></div>
+
+            <div class="form-group">
+                <label class="col-sm-3 control-label no-padding-right" for="form-input-readonly"> 菜单URL </label>
+
+                <div class="col-sm-9">
+                    <input readonly="" type="text" class="col-xs-10 col-sm-5" id="callback_menu"/>
+                </div>
+            </div>
+
+
+            <div class="form-group">
+                <label class="col-sm-3 control-label no-padding-right" for="form-field-1"> 汇总指标配置 </label>
+
+                <div class="col-sm-9">
+                    <button id="gather_label_add">添加</button>
+                </div>
+
+            </div>
+            <div id="gather_label_area">
+            </div>
+
+            <div class="form-group">
+                <label class="col-sm-3 control-label no-padding-right" for="form-field-1"> 计算指标配置 </label>
+
+                <div class="col-sm-9">
+                    <!--<input type="text" id="" placeholder="" class="col-xs-10 col-sm-5"/>-->
+                    <button id="stat_label_add">添加</button>
+                </div>
+
+            </div>
+            <div id="stat_label_area">
+            </div>
+
+
+            <div class="clearfix form-actions">
+                <div class="col-md-offset-3 col-md-9">
+                    <button class="btn btn-info" type="button" id="self_query_query">
+                        <i class="ace-icon fa fa-check bigger-110"></i>
+                        查询
+                    </button>
+
+                    &nbsp; &nbsp; &nbsp;
+                    <button class="btn btn-info" type="button" id="self_query_insert">
+                        <i class="ace-icon fa fa-check bigger-110"></i>
+                        增加
+                    </button>
+                    &nbsp; &nbsp; &nbsp;
+                    <button class="btn btn-info" type="button" id="self_query_update">
+                        <i class="ace-icon fa fa-check bigger-110"></i>
+                        修改
+                    </button>
+                    &nbsp; &nbsp; &nbsp;
+                    <button class="btn btn-info" type="button" id="self_query_delete">
+                        <i class="ace-icon fa fa-check bigger-110"></i>
+                        删除
+                    </button>
+                </div>
+            </div>
+
+            <div class="hr hr-24"></div>
+
+
+        </form>
+
+
+        <!-- PAGE CONTENT ENDS -->
+    </div>
+    <!-- /.col -->
+</div><!-- /.row -->
+
+<div class="page-header">
+
+    <p>
+
+        <span class="input-group col-xs-8 col-sm-2" style="display: inline-table;" id="range-time-area">
+    </span>
+
+        <span id="collectBtn">
+
+{#        <button class="btn  btn-light btn-sm" style="float: right" onclick="addCollectBtn()">#}
+{#            <i class="ace-icon fa fa-shopping-cart bigger-160"></i>#}
+{#            收藏#}
+{#        </button>#}
+            </span>
+    </p>
+
+
+</div>
+{% comment %}line chart area{% endcomment %}
+<div class="row">
+    <div id="highChartArea"></div>
+</div>
+
+<div class="row">
+
+
+    <div class="col-xs-12" id="grid_container">
+
+        <!-- <table id="grid-table"></table>-->
+        <!--<div id="grid-pager"></div>-->
+
+        <script type="text/javascript">
+            var $path_base = "../..";//in Ace demo this will be used for editurl parameter
+        </script>
+    </div>
+    <!-- /.col -->
+</div><!-- /.row -->
+{#跳转页面时候带来的收藏查询的信息#}
+<input type="hidden" value="{{ collection_id }}" id="collection_id">
+<!-- page specific plugin scripts -->
+
+<!--[if lte IE 8]>
+<script src="{{STATIC_URL}}assets/js/excanvas.min.js"></script>
+<![endif]-->
+<script type="text/javascript">
+    var scripts = [null, "{{STATIC_URL}}assets/js/jquery-ui.custom.min.js",
+        "{{STATIC_URL}}assets/js/chosen.jquery.min.js",
+        "{{STATIC_URL}}assets/js/jqGrid/jquery.jqGrid.min.js",
+        "{{STATIC_URL}}assets/js/jqGrid/i18n/grid.locale-en.js",
+        "{{STATIC_URL}}assets/js/jquery.autosize.min.js",
+        "{{STATIC_URL}}assets/js/kankan/jqGrid/tbl-query-helper.js",
+        "{{STATIC_URL}}assets/js/kankan/highCharts/highcharts-helper.js",
+        "{{STATIC_URL}}assets/js/kankan/jqGrid/jqGridPage.js",
+        null]
+    ace.load_ajax_scripts(scripts, function () {
+        //inline scripts related to this page
+        jQuery(function ($) {
+            $('.chosen-select').chosen({allow_single_deselect: true});
+            //resize the chosen on window resize
+
+            $(window)
+                    .off('resize.chosen')
+                    .on('resize.chosen', function () {
+                        $('.chosen-select').each(function () {
+                            var $this = $(this);
+                            $this.next().css({'width': $this.parent().width()});
+                        })
+                    }).trigger('resize.chosen');
+
+
+            $('#chosen-multiple-style').on('click', function (e) {
+                var target = $(e.target).find('input[type=radio]');
+                var which = parseInt(target.val());
+                if (which == 2) $('#form-field-select-4').addClass('tag-input-style');
+                else $('#form-field-select-4').removeClass('tag-input-style');
+            });
+
+
+            // my script -----------------------start
+            var jqGridContainer = "#grid_container";
+
+            /**
+             * 选择数据表，加载对应的表配置信息
+             */
+            jQuery(queryTableSelector).change(function () {
+                if (jQuery(queryTableSelector).val() == '0') {
+                    clearInput();
+                    return
+                }
+                load_table_column(jQuery(queryTableSelector).val(), [], []);
+            });
+
+            /**
+             * 点击查询事件
+             */
+            jQuery(queryButton).click(function () {
+                var renderInstance = new jqGridPage();
+                renderJqGrid(jqGridContainer, renderInstance);
+                addCollectBtn();
+            });
+
+
+            /**
+             * 点击添加报表操作
+             */
+            jQuery(insertButton).click(function () {
+                var pageInstance = new jqGridPage();
+                var colModel = pageInstance.getColModel();
+                var colModelNames = getColModelNames(colModel);
+                // 发送保存的请求
+                $.ajax({
+                    url: 'self_query/table_query_insert/',
+                    method: "POST",
+                    data: {
+                        sql_clause: pageInstance.getSql(),
+                        header: JSON.stringify(pageInstance.getColName()),
+                        note: jQuery(queryNote).val(),
+                        query_type: 'table_query',
+                        colModelNames: JSON.stringify(colModelNames),
+                        statLabels: JSON.stringify(grep_stat_labels()),
+                        timetype: pageInstance.getTimetype(),
+                        defaultSort: pageInstance.getDefaultSort(),
+                        detailDim: jQuery(detailDimSelector).val(),
+                        chartLabel: jQuery(lineChartSelector).val(),
+                        time_period: jQuery(timePeriodArea).val(),
+                        //gatherLabels: JSON.stringify(grep_gather_labels())
+                        gatherLabels: grep_gather_labels()
+
+                    },
+                    success: function (data) {
+                        if (data.status == true) {
+                            alert("添加成功！");
+                            // 加载回显URL
+                            jQuery(callBackMenu).val(data.menu);
+                            load_saved_query(data.msg);
+                            renderJqGrid(jqGridContainer, pageInstance);
+                            addCollectBtn();
+                        } else {
+                            alert(data.msg);
+                        }
+
+                    },
+                    error: function () {
+                        alert("Error with AJAX callback");
+                    }
+                });
+            });
+
+            jQuery(updateButton).click(function () {
+                var pageInstance = new jqGridPage();
+                var colModel = pageInstance.getColModel();
+                var colModelNames = getColModelNames(colModel);
+                $.ajax({
+                    url: 'self_query/table_query_update/',
+                    method: "POST",
+                    data: {
+                        sql_clause: pageInstance.getSql(),
+                        header: JSON.stringify(pageInstance.getColName()),
+                        note: $(queryNote).val(),
+                        query_type: 'table_query',
+                        id: jQuery(savedQuerySelector).val(),
+                        colModelNames: JSON.stringify(colModelNames),
+                        statLabels: JSON.stringify(grep_stat_labels()),
+                        timetype: pageInstance.getTimetype(),
+                        defaultSort: pageInstance.getDefaultSort(),
+                        detailDim: jQuery(detailDimSelector).val(),
+                        chartLabel: jQuery(lineChartSelector).val(),
+                        time_period: jQuery(timePeriodArea).val(),
+                        gatherLabels: grep_gather_labels()
+                    },
+                    success: function (data) {
+                        if (data.status == true) {
+                            alert("修改成功！");
+                            load_saved_query(data.msg);
+                            //combineGrid(result_dict);
+                            renderJqGrid(jqGridContainer, pageInstance);
+                            addCollectBtn();
+                        } else {
+                            alert(data.msg);
+                        }
+                    },
+                    error: function () {
+                        alert("Error with AJAX callback");
+                    }
+                });
+            });
+
+            /**
+             * 点击删除事件
+             */
+            jQuery(deleteButton).click(function () {
+                id = jQuery(savedQuerySelector).val();
+                if (id == '0') {
+                    alert("请选择一个报表查询！");
+                    return
+                }
+                $.ajax({
+                    url: 'self_query/table_query_delete/',
+                    method: "POST",
+                    data: {
+                        id: id,
+                    },
+                    success: function (msg) {
+                        alert("删除成功！");
+                        clearInput();
+                        load_saved_query();
+                        load_target_table();
+
+                    },
+                    error: function () {
+                        alert("Error with AJAX callback");
+                    }
+                });
+            });
+
+            /**
+             * 选择已有查询，回显相关信息
+             */
+            jQuery(savedQuerySelector).change(function () {
+                clearInput();
+                if (jQuery(savedQuerySelector).val() == '0') {
+                    return
+                }
+                //根据对应的id回显查询
+                $.ajax({
+                    method: "GET",
+                    url: "self_query/table_query_sql_by_pk/",
+                    data: {id: $(this).children('option:selected').val()},
+                    beforeSend: ajax_isloading($(".form-horizontal")),
+                    success: function (data) {
+                        ajax_hideloading($(".form-horizontal"));
+                        var opts = $.parseJSON(data);
+                        renderQueryPage(opts);
+
+                    }
+                });
+            });
+
+
+            /**
+             * 根据返回的报表配置渲染当前查询页面
+             * */
+            function renderQueryPage(jsonDataOpts) {
+                jQuery(queryTableSelector).val(jsonDataOpts.tableName);
+                load_table_column(jQuery(queryTableSelector).val(), jsonDataOpts.label_array, jsonDataOpts.dim_array);
+
+                // 回显已选指标select
+                jQuery(lableSelector).val(jsonDataOpts.label_array).trigger('chosen:updated');
+                // 回显已选维度select
+                jQuery(dimensionSelector).val(jsonDataOpts.dim_array).trigger('chosen:updated');
+                // 回显已选统计字段
+                if (jsonDataOpts.statLabels) {
+                    renderStatLables(jQuery.parseJSON(jsonDataOpts.statLabels));
+                }
+                // 回显已选汇总字段
+                if (jsonDataOpts.gatherLabels) {
+                    renderGatherLabels(jQuery.parseJSON(jsonDataOpts.gatherLabels));
+                }
+
+                // 回显报表说明
+                jQuery(queryNote).val(jsonDataOpts.note);
+                // 回显现实菜单url
+                jQuery(callBackMenu).val(jsonDataOpts.menu);
+                // 回显已选时间类型
+                jQuery(timetypeSelector).filter("[value=" + jsonDataOpts.timetype + "]").prop('checked', true);
+                // 回显已选排序字段
+                jQuery(defaultSortSelector).val(jsonDataOpts.defaultSort);
+                // 回显已选的下转字段
+                jQuery(detailDimSelector).val(jsonDataOpts.detailDim);
+                // 回显已选的折线字段
+                jQuery(lineChartSelector).val(jsonDataOpts.chartLabel);
+                // 回显已选筛选时间周期
+                jQuery(timePeriodArea).val(jsonDataOpts.time_period);
+
+            }
+
+            /**
+             * 加载查询的数据表
+             */
+            function load_target_table() {
+
+                $.ajax({
+                    method: "GET",
+                    url: "self_query/load_query_table/",
+                    success: function (data) {
+                        var opts = data.table_dict;
+                        jQuery(queryTableSelector).empty().append("<option value='0'  selected='selected'>请选择</option>");
+                        $.each(opts, function (i, d) {
+                            jQuery(queryTableSelector).append('<option  value="' + d.table_name + '">' + d.table_comment + '</option>');
+                        });
+                    }
+                });
+            }
+
+            /**
+             * 加载已经保存的查询
+             * @param callback_id
+             */
+            function load_saved_query(callback_id) {
+                $.ajax({
+                    method: "GET",
+                    url: "self_query/query_saved_sql",
+                    data: {query_type: 'table_query'},
+                    success: function (data) {
+                        var opts = $.parseJSON(data);
+                        jQuery(savedQuerySelector).empty();
+                        jQuery(savedQuerySelector).append("<option value='0' selected='selected'>新增</option>");
+                        $.each(opts.saved_sql, function (i, d) {
+                            jQuery(savedQuerySelector).append("<option value='" + d.id + "'>" + d.note + "</option>");
+                        });
+                        // 可选回显信息
+                        if (callback_id != undefined) {
+                            jQuery(savedQuerySelector).val(callback_id);
+                        }
+                    }
+                });
+            }
+
+
+            var labelsList;
+
+            /**
+             * 加载选择报表的配置信息。阻塞加载
+             * 用处：选择数据表时候调用；选择已有查询报表时候调用
+             * @param tableName
+             */
+            function load_table_column(tableName, selectedLabel, selectedDim) {
+                $.ajax({
+                    method: "GET",
+                    url: "self_query/load_tableConf/",
+                    async: false,
+                    data: {'tableName': tableName},
+                    success: function (data) {
+                        //渲染指标选项-----------这里将已选择的
+                        labelsList = data.labels;
+                        jQuery(lableSelector).empty();
+
+                        // 先将已选中的指标加上-------------这是为了让chosen多选项保持顺序
+                        for (var i = 0; i < selectedLabel.length; i++) {
+                            if (selectedLabel[i].indexOf('_ffact_') > -1) {// 剔除统计字段
+                                continue;
+                            }
+                            jQuery(lableSelector).append('<option  value="' + selectedLabel[i] + '">' + labelsList[selectedLabel[i]] + '</option>');
+                        }
+                        //将没有选中的补上
+                        $.each(labelsList, function (key, value) {
+                            //已经选中的刚刚已经加上
+                            if (selectedLabel.indexOf(key) != -1) {
+                                return;
+                            }
+                            jQuery(lableSelector).append('<option  value="' + key + '">' + value + '</option>');
+                        });
+                        jQuery(lableSelector).trigger("chosen:updated");
+
+                        //渲染维度选项
+                        dimensionsList = data.dimensions;
+                        jQuery(dimensionSelector).empty();
+
+                        //先将已选中的维度加入select
+                        for (var i = 0; i < selectedDim.length; i++) {
+                            if (selectedDim[i] == 'fdim_fday') {
+                                continue;
+                            }
+                            jQuery(dimensionSelector).append('<option  value="' + selectedDim[i] + '">' + dimensionsList[selectedDim[i]] + '</option>');
+                        }
+                        //将没选中的维度补上
+                        $.each(dimensionsList, function (key, value) {
+                            // 时间特殊处理+该维度为已经选中
+                            if (key == "fdim_fday" || selectedDim.indexOf(key) != -1) {
+                                return
+                            }
+                            jQuery(dimensionSelector).append('<option  value="' + key + '">' + value + '</option>');
+
+                        });
+                        jQuery(dimensionSelector).trigger("chosen:updated");
+
+                        // 加载默认筛选字段下拉框
+                        renderDefaultSort(labelsList);
+
+                        // 加载下转字段
+                        renderDetailDim(dimensionsList);
+                        // 加载折线图字段
+                        renderLineChart(labelsList);
+
+                    }
+                });
+            }
+
+            /**
+             * 回显统计字段
+             * @param statArray 统计字段数组
+             */
+            function renderStatLables(statArray) {
+                $.each(statArray, function (i, item) {
+                    $.get("self_query/load_stat_label_tag.html", function (data) {
+                        $("#stat_label_area").append(data);
+                        //jQuery("#stat_label_area").empty();
+                        var opts = jQuery("div[name='label_stat_select_area']");
+                        var statLabelSelector1 = jQuery(opts[opts.length - 1]).find("select[name='label_stat_select1']")[0];
+                        var statLabelSelector2 = jQuery(opts[opts.length - 1]).find("select[name='label_stat_select2']")[0];
+                        var opSelector = jQuery(opts[opts.length - 1]).find("select[name='label_stat_op']")[0];
+                        var noteSelector = jQuery(opts[opts.length - 1]).find("input[name='stat_label_note']")[0];
+                        // 灌数据
+                        $.each(labelsList, function (key, value) {
+                            jQuery(statLabelSelector1)
+                                    .append($("<option></option>")
+                                            .attr("value", key)
+                                            .text(value));
+                            jQuery(statLabelSelector2)
+                                    .append($("<option></option>")
+                                            .attr("value", key)
+                                            .text(value));
+                        });
+                        jQuery(statLabelSelector1).val(item.field1);
+                        jQuery(statLabelSelector2).val(item.field2);
+                        jQuery(opSelector).val(item.op);
+                        jQuery(noteSelector).val(item.note);
+                    });
+
+                });
+            }
+
+            /**
+             * 回显汇总字段
+             * @param gatherArray 汇总字段数组
+             */
+            function renderGatherLabels(gatherArray) {
+
+                $.each(gatherArray, function (i, item) {
+                    $.get("self_query/gather_label_tag.html", function (data) {
+                        $("#gather_label_area").append(data);
+                        var opts = jQuery("div[name='gather_label_select_area']");
+                        var gatherLabelSelector = jQuery(opts[opts.length - 1]).find("select[name='gather_label_select']")[0];
+                        var opSelector = jQuery(opts[opts.length - 1]).find("select[name='gather_label_op']")[0];
+                        // 灌数据
+                        $.each(labelsList, function (key, value) {
+                            jQuery(gatherLabelSelector)
+                                    .append($("<option></option>")
+                                            .attr("value", key)
+                                            .text(value));
+                        });
+                        //回显选中字段
+                        jQuery(gatherLabelSelector).val(item.field);
+                        jQuery(opSelector).val(item.op);
+                    });
+                });
+            }
+
+
+            /**
+             * 添加计算字段的标签
+             */
+            jQuery("#stat_label_add").click(function (event) {
+                if (labelsList === undefined) {
+                    alert("请选择报表！");
+                    event.preventDefault();
+                    return
+                }
+                $.get("self_query/load_stat_label_tag.html", function (data) {
+                    $("#stat_label_area").append(data);
+                    var opts = jQuery("div[name='label_stat_select_area']");
+                    var statLabelSelector1 = jQuery(opts[opts.length - 1]).find("select[name='label_stat_select1']")[0];
+                    var statLabelSelector2 = jQuery(opts[opts.length - 1]).find("select[name='label_stat_select2']")[0];
+                    // 灌数据
+                    $.each(labelsList, function (key, value) {
+                        jQuery(statLabelSelector1)
+                                .append($("<option></option>")
+                                        .attr("value", key)
+                                        .text(value));
+                        jQuery(statLabelSelector2)
+                                .append($("<option></option>")
+                                        .attr("value", key)
+                                        .text(value));
+                    });
+                });
+                //防止重复刷新
+                event.preventDefault();
+
+            });
+
+            jQuery("#gather_label_add").click(function (event) {
+                if (labelsList === undefined) {
+                    alert("请选择报表！");
+                    event.preventDefault();
+                    return
+                }
+                $.get("self_query/gather_label_tag.html", function (data) {
+                    $("#gather_label_area").append(data);
+                    var opts = jQuery("div[name='gather_label_select_area']");
+                    var gatherLabelSelector = jQuery(opts[opts.length - 1]).find("select[name='gather_label_select']")[0];
+                    // 灌数据
+                    $.each(labelsList, function (key, value) {
+                        jQuery(gatherLabelSelector)
+                                .append($("<option></option>")
+                                        .attr("value", key)
+                                        .text(value));
+                    });
+                });
+                //防止重复刷新
+                event.preventDefault();
+            });
+
+
+            /**
+             * 渲染排序字段
+             * @param labelsArray 指标项数组
+             *
+             */
+            function renderDefaultSort(labelsArray) {
+                jQuery(defaultSortSelector).empty();
+                //默认日期
+                jQuery(defaultSortSelector)
+                        .append($("<option selected='selected'></option>")
+                                .attr("value", "fdim_fday")
+                                .text("日期"));
+                $.each(labelsArray, function (key, value) {
+                    jQuery(defaultSortSelector)
+                            .append($("<option></option>")
+                                    .attr("value", key)
+                                    .text(value));
+                });
+            }
+
+            /**
+             * 加载下转维度字段
+             * @param dimArray 维度数组
+             *
+             */
+            function renderDetailDim(dimsArray) {
+                jQuery(detailDimSelector).empty();
+                jQuery(detailDimSelector)
+                        .append($("<option selected='selected'></option>")
+                                .attr("value", "")
+                                .text(""));
+                $.each(dimsArray, function (key, value) {
+                    jQuery(detailDimSelector)
+                            .append($("<option></option>")
+                                    .attr("value", key)
+                                    .text(value));
+                });
+            }
+
+            function renderLineChart(lableArray) {
+                jQuery(lineChartSelector).empty();
+                jQuery(lineChartSelector)
+                        .append($("<option selected='selected'></option>")
+                                .attr("value", "")
+                                .text(""));
+                $.each(lableArray, function (key, value) {
+                    jQuery(lineChartSelector)
+                            .append($("<option></option>")
+                                    .attr("value", key)
+                                    .text(value));
+                });
+            }
+
+            /**
+             * 清除输入数据
+             */
+            function clearInput() {
+                jQuery(lableSelector).val('').trigger("chosen:updated");
+                jQuery(dimensionSelector).val('').trigger("chosen:updated");
+                jQuery("#query_conf_note").val('');
+                jQuery("#callback_menu").val('');
+                jQuery("#button_area").empty();
+                jQuery("#target_table_dropdown").val('0');
+                jQuery("#stat_label_area").empty();
+                jQuery("#gather_label_area").empty();
+                jQuery("#linechart_label").empty();
+                destroyGrid();
+
+            }
+
+            // 初始加载数据
+            load_target_table();
+            // 加载收藏的代码
+            if (jQuery("#collection_id").val()) {
+                // 加载收藏的查询
+                $.ajax({
+                    method: "GET",
+                    url: "account/get_collection_conf/",
+                    data: {SeqId: jQuery("#collection_id").val()},
+                    beforeSend: ajax_isloading($(".form-horizontal")),
+                    success: function (data) {
+                        ajax_hideloading($(".form-horizontal"));
+                        var opts = $.parseJSON(data);
+                        // TODO render saved query
+                        renderQueryPage(opts);
+                    }
+                });
+            } else {
+                // 加载默认查询
+                load_saved_query();
+            }
+
+
+            //my script -------------------------end
+
+        });
+
+    })
+    ;
+
+
+</script>

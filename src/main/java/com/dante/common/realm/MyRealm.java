@@ -37,7 +37,7 @@ public class MyRealm extends AuthorizingRealm {
         String userName = (String) super.getAvailablePrincipal(principals);
         List roleList = new ArrayList<String>();
         List permissionList = new ArrayList<String>();
-        Account account = accountService.accountLogin(userName);
+        Account account = accountService.roleAndPermission(userName);
         for (Role role : account.getRoleList()) {
             if (null != role) {
                 roleList.add(role.getName());
@@ -69,7 +69,7 @@ public class MyRealm extends AuthorizingRealm {
         //实际上这个authcToken是从LoginController里面currentUser.login(token)传过来的
         UsernamePasswordToken userToken = (UsernamePasswordToken) token;
 //        User user = userService.queryLogin(userToken.getUsername());
-        Account account = accountService.accountLogin(userToken.getUsername());
+        Account account = accountService.findAccount(userToken.getUsername(), String.valueOf(userToken.getPassword()));
         if (null != account) {
             AuthenticationInfo authenticationInfo = new SimpleAuthenticationInfo(account.getName(), account.getPwd(), "xx");
             this.setSession("currentUser", account);

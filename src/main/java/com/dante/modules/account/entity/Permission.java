@@ -5,7 +5,7 @@ import com.dante.common.persistence.BaseEntity;
 /**
  * Created by dante on 2017/4/26.
  */
-public class Permission  extends BaseEntity {
+public class Permission  extends BaseEntity<Permission> {
     private int id;
     private String name;
 

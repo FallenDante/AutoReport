@@ -1,0 +1,168 @@
+<div id="history_container" style="height: 400px; min-width: 310px"></div>
+<input type="hidden" id="live_id_area" value="{{ live_id }}">
+<input type="hidden" id="app_area" value="{{ app }}">
+<input type="hidden" id="stream_area" value="{{ stream }}">
+<input type="hidden" id="ip_area" value="{{ ip }}">
+<input type="hidden" id="live_active_flag" value="{{ active }}">
+{#<script src="{{ STATIC_URL }}assets/js/kankan/highCharts/highstock.js"></script>#}
+<script>
+    var scripts = [null,
+
+        null];
+
+    ace.load_ajax_scripts(scripts, function () {
+
+        // 上一条记录的系统时间
+        //var pre_live_ms = 0;
+
+
+        /***
+         * 加载初始数据
+         */
+        function init_highstock_data() {
+            var data_series = {};
+            $.ajax({
+                url: 'livemonitor/load_monitor_history_data/',
+                method: "GET",
+                data: {'live_id': jQuery("#live_id_area").val()},
+                success: function (data) {
+                    //TODO 检查是否有数据
+                    //console.log(data);
+                    var monitor_records = data['monitro_records'];
+                    var recv_avg = [];
+                    var recv_3s_a = [];
+                    var recv_3s_v = [];
+                    var recv_3s_fps = [];
+                    for (var i = 0; i < monitor_records.length; i++) {
+                        recv_avg.push([monitor_records[i]['live_ms'], jQuery.parseJSON(monitor_records[i]['kbps'])['recv_avg']]);
+                        recv_3s_a.push([monitor_records[i]['live_ms'], jQuery.parseJSON(monitor_records[i]['kbps'])['recv_3s_a']]);
+                        recv_3s_v.push([monitor_records[i]['live_ms'], jQuery.parseJSON(monitor_records[i]['kbps'])['recv_3s_v']]);
+                        recv_3s_fps.push([monitor_records[i]['live_ms'], jQuery.parseJSON(monitor_records[i]['kbps'])['recv_3s_fps']]);
+                    }
+                    data_series['avg_bitrate'] = recv_avg;
+                    data_series['audio_bitrate'] = recv_3s_a;
+                    data_series['video_bitrate'] = recv_3s_v;
+                    data_series['fps'] = recv_3s_fps;
+                    //这里加载比较慢，采用阻塞会影响体验
+                    //last_record_time_stamp = monitor_records[monitor_records.length - 1]['live_ms']
+                    //加载数据成功后画图
+                    draw_highstock(data_series);
+                },
+                error: function () {
+                    alert("Error with AJAX callback");
+                }
+            });
+            return data_series
+        }
+
+        function draw_highstock(period_time_data) {
+            //var period_time_data = init_highstock_data();
+            Highcharts.setOptions({
+                global: {
+                    useUTC: false
+                }
+            });
+            $('#history_container').highcharts('StockChart', {
+                rangeSelector: {
+                    buttons: [{
+                        count: 1,
+                        type: 'minute',
+                        text: '1M'
+                    }, {
+                        count: 5,
+                        type: 'minute',
+                        text: '5M'
+                    }, {
+                        type: 'all',
+                        text: 'All'
+                    }],
+                    inputEnabled: false,
+                    selected: 0
+                },
+                yAxis: [
+                    { // Primary yAxis
+
+                        labels: {
+                            format: '{value}kps',
+                        },
+
+                        title: {
+                            text: '码率',
+
+                        },
+
+                    },
+                    { // Secondary yAxis
+                        title: {
+                            text: '视频帧率',
+                            style: {
+                                color: '#EE7700'
+                            }
+                        },
+                        opposite: false,// stockchart 的设置和常规的相反
+                        labels: {
+                            format: '{value}',
+                            style: {
+                                color: '#EE7700'
+                            }
+                        },
+
+                    }
+                ],
+                tooltip: {
+                    shared: true,
+                    {#                    pointFormatter: function () {#}
+                    {#                        return '<span style="color:{' + this.series.color + '}">u25CF</span> {' +#}
+                    {#                                this.series.name + '}: <b>{' + this.y + '}</b><br/>.'#}
+                    {#                        if (this.series.name == '帧率') {#}
+                    {#                            return this.y + " fps"#}
+                    {#                        }#}
+                    {#                        else {#}
+                    {#                            return this.y + " kps"#}
+                    {#                        }#}
+                    {#                    }#}
+                },
+
+                title: {
+                    text: "<strong>" + jQuery("#app_area").val() + "." + jQuery("#stream_area").val() + " (" + jQuery("#ip_area").val() + ") " + "历史数据</strong>"
+                },
+
+                exporting: {
+                    enabled: false
+                },
+                series: [
+                    {
+                        name: '总码率',
+                        data: period_time_data['avg_bitrate'],
+                        yAxis: 0,
+                    },
+                    {
+                        name: '音频码率',
+                        data: period_time_data['audio_bitrate'],
+                        yAxis: 0,
+                    },
+                    {
+                        name: '视频码率',
+                        data: period_time_data['video_bitrate'],
+                        yAxis: 0,
+                    },
+                    {
+                        name: '视频帧率',
+                        data: period_time_data['fps'],
+                        yAxis: 1,
+                    }
+                ]
+            });
+        }
+
+        init_highstock_data();
+        if (jQuery("#live_active_flag").val() == 'True') {
+            // 实时播放，定时刷新------暂定五分钟
+            setInterval(function () {
+                init_highstock_data();
+            }, 300000);
+        }
+    });
+
+
+</script>

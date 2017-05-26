@@ -12,10 +12,19 @@
 
     <description>Spring Configuration</description>
 
+    <!-- 加载配置属性文件 -->
+    <context:property-placeholder ignore-unresolvable="true" location="classpath:autoreport.properties" />
+
+    <!--定义视图文件映射-->
     <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
-        <property name="prefix" value="/WEB-INF/views/"/>
-        <property name="suffix" value=".jsp"/>
+        <property name="prefix" value="${web.view.prefix}"/>
+        <property name="suffix" value="${web.view.suffix}"/>
     </bean>
+
+    <!-- 静态资源映射 -->
+    <mvc:resources mapping="/static/**" location="/static/" cache-period="31536000"/>
+
+
 
     <!--默认跳转页面-->
     <mvc:view-controller path="/" view-name="forward:/login"/>
@@ -76,14 +85,26 @@
         <property name="securityManager" ref="securityManager"/>
     </bean>
 
+    <!--定义映射失败的页面-->
+    <bean class="org.springframework.web.servlet.handler.SimpleMappingExceptionResolver">
+        <property name="exceptionMappings">
+            <props>
+                <prop key="org.apache.shiro.authz.UnauthorizedException">error/403</prop>
+                <prop key="java.lang.Throwable">error/500</prop>
+            </props>
+        </property>
+    </bean>
+
     <!-- 配置数据源 -->
     <bean id="dataSource"
           class="com.alibaba.druid.pool.DruidDataSource">
         <property name="url"
-                  value="jdbc:mysql://localhost:3306/auto_report_lib?useUnicode=true&amp;characterEncoding=UTF-8"/>
-        <property name="username" value="root"/>
-        <property name="password" value="123456"/>
+                  value="jdbc:mysql://${mysql.ip}:${mysql.port}/auto_report_lib?useUnicode=true&amp;characterEncoding=UTF-8"/>
+        <property name="username" value="${mysql.user}"/>
+        <property name="password" value="${mysql.pwd}"/>
     </bean>
+
+
 
     <!-- 配置mybatis的sqlSessionFactory -->
     <bean id="sqlSessionFactory"

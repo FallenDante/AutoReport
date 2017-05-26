@@ -25,7 +25,7 @@
     <!--<select id="queryToLogin" parameterType="String" resultType="User">-->
     <!--select u.userid, u.name,u.pwd from dante_user u where name = #{userName};-->
     <!--</select>-->
-    <select id="queryToLogin" parameterType="String" resultMap="AccountResult">
+    <select id="queryAccountMsg" parameterType="String" resultMap="AccountResult">
         SELECT
         a.ACCOUNT_ID,
         a.ACCOUNT_NAME,
@@ -43,8 +43,53 @@
         where a.ACCOUNT_NAME=#{name}
     </select>
 
+    <select id="get" resultType="Account">
+        SELECT ACCOUNT_ID AS id, ACCOUNT_NAME AS name, ACCOUNT_PWD AS pwd
+        FROM account
+        WHERE ACCOUNT_PWD = #{pwd}
+	      AND ACCOUNT_NAME = #{name}
+    </select>
+    
+    <insert id="insert" useGeneratedKeys="true"
+            keyProperty="id">
+        INSERT INTO account (ACCOUNT_NAME, ACCOUNT_PWD)
+        VALUES
+	    ($ {name}, $ {pwd})
+    </insert>
+
+    <insert id="insertRoleRelation" >
+      INSERT INTO account_role (ROLE_ID, ACCOUNT_ID)
+      VALUES
+      <foreach collection="roleIDs" item="roleID" separator=",">
+	  ( #{roleID,jdbcType=INTEGER}, #{accountID})
+      </foreach>
+    </insert>
+
+    <update id="update">
+      UPDATE account
+        SET ACCOUNT_NAME = #{name},
+            ACCOUNT_PWD = #{pwd}
+      WHERE
+	    ACCOUNT_ID = #{id};
+    </update>
+
+    <update id="delete" parameterType="Account">
+      UPDATE account
+        SET DEL_FLAG = #{delFlag}
+      WHERE
+	    ACCOUNT_ID = #{id};
+    </update>
+
+     <delete id="deleteRoleRelation">
+        DELETE
+        FROM
+	      account_role
+        WHERE
+	      ACCOUNT_ID = #{accountID};
+     </delete>
+
     <!--<select id="queryRole" resultType="Role">-->
-        <!--SELECT * from  role where ROLE_ID = #{id}-->
+    <!--SELECT * from  role where ROLE_ID = #{id}-->
     <!--</select>-->
 
 </mapper>

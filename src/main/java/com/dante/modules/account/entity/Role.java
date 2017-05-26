@@ -5,9 +5,10 @@ import com.dante.common.persistence.BaseEntity;
 /**
  * Created by dante on 2017/4/26.
  */
-public class Role extends BaseEntity {
+public class Role extends BaseEntity<Role> {
     private int id;
     private String name;
+
 
     public int getId() {
         return id;
