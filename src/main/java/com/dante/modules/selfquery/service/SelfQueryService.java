@@ -3,14 +3,12 @@ package com.dante.modules.selfquery.service;
 import com.dante.modules.selfquery.dao.SelfQueryDao;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Created by dante on 2017/5/25.
- */
 @Service
 public class SelfQueryService {
 
@@ -18,6 +16,7 @@ public class SelfQueryService {
     private SelfQueryDao selfQueryDao;
 
 
+    @Transactional(readOnly = true )
     public Map<String ,Object> getSqlQueryData(String sqlClause,int page,int rows){
         Map resultMap = new HashMap<String ,Object>();
         int totalRecord = selfQueryDao.getQueryCount(sqlClause);

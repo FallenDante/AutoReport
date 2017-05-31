@@ -12,9 +12,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Created by dante on 2017/5/24.
- */
 @RequestMapping(value = "/autoReport/csv/")
 @Controller
 public class CsvController {

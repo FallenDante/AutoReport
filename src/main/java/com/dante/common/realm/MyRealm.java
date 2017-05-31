@@ -1,5 +1,6 @@
 package com.dante.common.realm;
 
+import com.dante.modules.account.dao.AccountDao;
 import com.dante.modules.account.entity.Account;
 import com.dante.modules.account.entity.Permission;
 import com.dante.modules.account.entity.Role;
@@ -23,8 +24,12 @@ import java.util.List;
  */
 public class MyRealm extends AuthorizingRealm {
 
+    //TODO 此处使用事务标签会引发错误，猜测是事务相关的bean尚未初始化，待查明
+//    @Autowired
+//    private AccountService accountService;
+
     @Autowired
-    private AccountService accountService;
+    private AccountDao accountDao;
 
     /**
      * 为当前登录的Subject授予角色和权限
@@ -37,7 +42,7 @@ public class MyRealm extends AuthorizingRealm {
         String userName = (String) super.getAvailablePrincipal(principals);
         List roleList = new ArrayList<String>();
         List permissionList = new ArrayList<String>();
-        Account account = accountService.roleAndPermission(userName);
+        Account account = this.roleAndPermission(userName);
         for (Role role : account.getRoleList()) {
             if (null != role) {
                 roleList.add(role.getName());
@@ -69,7 +74,7 @@ public class MyRealm extends AuthorizingRealm {
         //实际上这个authcToken是从LoginController里面currentUser.login(token)传过来的
         UsernamePasswordToken userToken = (UsernamePasswordToken) token;
 //        User user = userService.queryLogin(userToken.getUsername());
-        Account account = accountService.findAccount(userToken.getUsername(), String.valueOf(userToken.getPassword()));
+        Account account = this.findAccount(userToken.getUsername(), String.valueOf(userToken.getPassword()));
         if (null != account) {
             AuthenticationInfo authenticationInfo = new SimpleAuthenticationInfo(account.getName(), account.getPwd(), "xx");
             this.setSession("currentUser", account);
@@ -89,5 +94,15 @@ public class MyRealm extends AuthorizingRealm {
             session.setAttribute(key, value);
         }
 
+    }
+
+    private Account roleAndPermission(String name) {
+        Account account = accountDao.queryAccountMsg(name);
+        return account;
+    }
+
+    private Account findAccount(String name, String pwd) {
+        Account account = accountDao.findAccount(name, pwd);
+        return account;
     }
 }

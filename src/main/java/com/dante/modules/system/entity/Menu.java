@@ -5,9 +5,7 @@ import com.dante.modules.system.util.MenuComparator;
 
 import java.util.*;
 
-/**
- * Created by dante on 5/13/17.
- */
+
 public class Menu extends BaseEntity<Menu> implements Comparator {
 
     private int menuID;

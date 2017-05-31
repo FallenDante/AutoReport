@@ -11,9 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-/**
- * Created by dante on 2017/5/11.
- */
+
 @Controller // annotation to scan
 public class MainController {
     @Autowired
@@ -36,6 +34,11 @@ public class MainController {
             token.clear();
         }
 
+        return "login_success";
+    }
+
+    @RequestMapping(value = "login2.do", method = RequestMethod.GET)
+    public String login2(){
         return "login_success";
     }
 

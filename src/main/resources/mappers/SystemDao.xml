@@ -24,15 +24,15 @@
 	      WHERE a.ACCOUNT_ID = #{accountID})
     </select>
 
-    <select id="">
-        SELECT
-	      COLUMN_NAME,
-	      COLUMN_COMMENT
-        FROM
-	      INFORMATION_SCHEMA. COLUMNS
-        WHERE
-	      TABLE_SCHEMA = #{dbName}
-        AND TABLE_NAME = #{}
-    </select>
+    <!--<select id="">-->
+        <!--SELECT-->
+	      <!--COLUMN_NAME,-->
+	      <!--COLUMN_COMMENT-->
+        <!--FROM-->
+	      <!--INFORMATION_SCHEMA. COLUMNS-->
+        <!--WHERE-->
+	      <!--TABLE_SCHEMA = #{dbName}-->
+        <!--AND TABLE_NAME = #{}-->
+    <!--</select>-->
 
 </mapper>

@@ -10,9 +10,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-/**
- * Created by dante on 5/20/17.
- */
+
 @Controller
 @RequestMapping(value = "/autoReport/")
 public class SystemController {

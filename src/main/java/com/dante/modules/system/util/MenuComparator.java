@@ -4,9 +4,7 @@ import com.dante.modules.system.entity.Menu;
 
 import java.util.Comparator;
 
-/**
- * Created by dante on 5/20/17.
- */
+
 public class MenuComparator implements Comparator<Menu> {
 
     @Override

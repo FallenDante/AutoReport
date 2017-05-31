@@ -6,9 +6,6 @@ import com.dante.modules.account.entity.Role;
 
 import java.util.List;
 
-/**
- * Created by dante on 2017/5/23.
- */
 @MyBatisDao
 public interface RoleDao extends CrudDao<Role> {
 

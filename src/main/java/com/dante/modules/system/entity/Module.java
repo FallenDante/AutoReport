@@ -2,9 +2,7 @@ package com.dante.modules.system.entity;
 
 import com.dante.common.persistence.BaseEntity;
 
-/**
- * Created by dante on 5/13/17.
- */
+
 public class Module extends BaseEntity<Module> {
     private int moduleID;
     private String moduleName;

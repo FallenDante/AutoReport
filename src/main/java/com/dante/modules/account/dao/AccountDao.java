@@ -7,9 +7,7 @@ import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
-/**
- * Created by dante on 2017/5/11.
- */
+
 @MyBatisDao //-----annotation to scan
 public interface AccountDao extends CrudDao<Account> {
     Account queryToLogin(String name, String pwd);

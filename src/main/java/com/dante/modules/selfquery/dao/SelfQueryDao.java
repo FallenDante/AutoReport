@@ -6,9 +6,7 @@ import com.dante.common.persistence.annotation.MyBatisDao;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Created by dante on 2017/5/25.
- */
+
 @MyBatisDao
 public interface SelfQueryDao  {
     /**

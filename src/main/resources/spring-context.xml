@@ -3,11 +3,13 @@
        xmlns:context="http://www.springframework.org/schema/context"
        xmlns:aop="http://www.springframework.org/schema/aop"
        xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xmlns:tx="http://www.springframework.org/schema/tx"
        xsi:schemaLocation="
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.1.xsd
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.1.xsd
 		http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-4.1.xsd
-        http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.1.xsd"
+        http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.1.xsd
+        http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.1.xsd"
        default-lazy-init="true">
 
     <description>Spring Configuration</description>
@@ -37,6 +39,13 @@
     <!-- 所以配置了<context:component-scan base-package="">之后,便无需再配置<context:annotation-config> -->
     <context:component-scan base-package="com.dante"/>
 
+    <!-- 定义事务 -->
+    <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource" />
+    </bean>
+
+    <!-- 配置 Annotation 驱动，扫描@Transactional注解的类定义事务  -->
+    <tx:annotation-driven transaction-manager="transactionManager"  />
 
     <!-- 继承自AuthorizingRealm的自定义Realm,即指定Shiro验证用户登录的类为自定义的ShiroDbRealm.java -->
     <bean id="myRealm" class="com.dante.common.realm.MyRealm"/>
@@ -86,14 +95,16 @@
     </bean>
 
     <!--定义映射失败的页面-->
-    <bean class="org.springframework.web.servlet.handler.SimpleMappingExceptionResolver">
-        <property name="exceptionMappings">
-            <props>
-                <prop key="org.apache.shiro.authz.UnauthorizedException">error/403</prop>
-                <prop key="java.lang.Throwable">error/500</prop>
-            </props>
-        </property>
-    </bean>
+    <!--<bean class="org.springframework.web.servlet.handler.SimpleMappingExceptionResolver">-->
+        <!--<property name="exceptionMappings">-->
+            <!--<props>-->
+                <!--<prop key="org.apache.shiro.authz.UnauthorizedException">error/403</prop>-->
+                <!--<prop key="java.lang.Throwable">error/500</prop>-->
+            <!--</props>-->
+        <!--</property>-->
+    <!--</bean>-->
+
+
 
     <!-- 配置数据源 -->
     <bean id="dataSource"
@@ -125,4 +136,6 @@
         <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory"/>
         <property name="annotationClass" value="com.dante.common.persistence.annotation.MyBatisDao"/>
     </bean>
+
+
 </beans>

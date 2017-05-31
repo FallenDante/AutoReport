@@ -6,9 +6,7 @@ import com.dante.modules.system.entity.Menu;
 import java.util.List;
 import java.util.TreeSet;
 
-/**
- * Created by dante on 2017/4/27.
- */
+
 public class Account extends BaseEntity<Account> {
     private int id;
     private String name;

@@ -10,9 +10,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Created by dante on 2017/5/25.
- */
+
 @RequestMapping(value = "/auto_report_lib/selfquery/")
 @Controller
 public class SelfQueryController {

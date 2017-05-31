@@ -14,9 +14,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-/**
- * Created by dante on 5/20/17.
- */
+import java.util.ArrayList;
+
+
 @Controller
 @RequestMapping(value = "/autoReport/account/")
 public class AccountController {
@@ -44,6 +44,19 @@ public class AccountController {
             SimpleResponse res = new SimpleResponse(SimpleResponse.RESPONSE_FAIL);
             return JasonMapper.defaultMapper().toJson(res);
         }
+    }
+
+    @RequestMapping(value = "login2",method = RequestMethod.GET)
+    public String login2(){
+        return "login";
+    }
+
+    @RequestMapping(value = "txTest" ,method = RequestMethod.GET)
+    public String txTest(){
+        Account account = new Account();
+        account.setName("testName");
+        accountService.addAccount(account,new ArrayList<Integer>());
+        return "login";
     }
 
 
